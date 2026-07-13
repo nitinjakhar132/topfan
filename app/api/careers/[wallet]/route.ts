@@ -1,4 +1,4 @@
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { matchScores, teams, users } from "@/db/schema";
 
@@ -67,4 +67,3 @@ export async function POST(request: Request, context: { params: Promise<{ wallet
     return Response.json({ error: error instanceof Error ? error.message : "Could not save primary team" }, { status: 500 });
   }
 }
-
