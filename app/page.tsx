@@ -34,6 +34,7 @@ declare global {
     solana?: {
       isPhantom?: boolean;
       connect: () => Promise<{ publicKey: { toString: () => string } }>;
+      signTransaction?: (transaction: Transaction) => Promise<Transaction>;
       signAndSendTransaction: (transaction: Transaction) => Promise<{ signature: string }>;
       signMessage: (message: Uint8Array, encoding?: string) => Promise<{ signature: Uint8Array }>;
     };
@@ -88,6 +89,7 @@ export default function Home() {
   const [wallet, setWallet] = useState("");
   const [connectionState, setConnectionState] = useState<"idle" | "connecting" | "active" | "error">("idle");
   const [connectionMessage, setConnectionMessage] = useState("Connect a devnet wallet to load live TxLINE data.");
+  const [connectionStep, setConnectionStep] = useState(0);
 
   const selectedCount = Object.keys(selected).length;
   const yourTotal = useMemo(() => positions.reduce((sum, pos) => sum + (selected[pos]?.rating ?? 0), 0), [selected]);
@@ -105,36 +107,80 @@ export default function Home() {
       setConnectionMessage("Install Phantom or another injected Solana wallet, then try again.");
       return;
     }
+    let currentStep = 1;
     try {
       setConnectionState("connecting");
-      setConnectionMessage("Preparing your free TxLINE devnet subscription…");
+      setConnectionStep(1);
+      setConnectionMessage("1/6 · Connecting your wallet…");
       const walletConnection = await window.solana.connect();
       const publicKey = walletConnection.publicKey.toString();
       setWallet(publicKey);
-      const session = await fetch("/api/txline/session", { method: "POST" }).then((response) => response.json()) as { jwt?: string; error?: string };
+      const timedFetch = (url: string, init?: RequestInit, timeout = 20_000) => {
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => controller.abort(), timeout);
+        return fetch(url, { ...init, signal: controller.signal }).finally(() => window.clearTimeout(timer));
+      };
+      setConnectionStep(2);
+      currentStep = 2;
+      setConnectionMessage("2/6 · Starting a TxLINE devnet session…");
+      const session = await timedFetch("/api/txline/session", { method: "POST" }).then((response) => response.json()) as { jwt?: string; error?: string };
       if (!session.jwt) throw new Error(session.error ?? "Could not start TxLINE session");
-      const prepared = await fetch("/api/txline/prepare", {
+      setConnectionStep(3);
+      currentStep = 3;
+      setConnectionMessage("3/6 · Preparing the free four-week subscription…");
+      const prepared = await timedFetch("/api/txline/prepare", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ publicKey }),
       }).then((response) => response.json()) as { transaction?: string; error?: string };
       if (!prepared.transaction) throw new Error(prepared.error ?? "Could not prepare subscription");
       const transaction = Transaction.from(Uint8Array.from(atob(prepared.transaction), (character) => character.charCodeAt(0)));
-      const sent = await window.solana.signAndSendTransaction(transaction);
-      const message = new TextEncoder().encode(`${sent.signature}::${session.jwt}`);
+      setConnectionStep(4);
+      currentStep = 4;
+      setConnectionMessage("4/6 · Approve the TxLINE subscription in your wallet…");
+      let txSignature: string;
+      if (window.solana.signTransaction) {
+        const signedTransaction = await window.solana.signTransaction(transaction);
+        const signedBase64 = btoa(String.fromCharCode(...signedTransaction.serialize()));
+        const sent = await timedFetch("/api/txline/send", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ transaction: signedBase64, publicKey }),
+        }, 35_000).then((response) => response.json()) as { signature?: string; error?: string };
+        if (!sent.signature) throw new Error(sent.error ?? "The devnet transaction was not confirmed.");
+        txSignature = sent.signature;
+      } else {
+        txSignature = (await window.solana.signAndSendTransaction(transaction)).signature;
+      }
+      setConnectionStep(5);
+      currentStep = 5;
+      setConnectionMessage("5/6 · Activating your TxLINE API token…");
+      const message = new TextEncoder().encode(`${txSignature}::${session.jwt}`);
       const signed = await window.solana.signMessage(message, "utf8");
       const walletSignature = btoa(String.fromCharCode(...signed.signature));
-      const activation = await fetch("/api/txline/activate", {
+      const activation = await timedFetch("/api/txline/activate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ txSig: sent.signature, walletSignature }),
+        body: JSON.stringify({ txSig: txSignature, walletSignature }),
       });
       if (!activation.ok) throw new Error((await activation.json()).error ?? "TxLINE activation failed");
+      setConnectionStep(6);
+      currentStep = 6;
+      setConnectionMessage("6/6 · Verifying live fixture access…");
+      const fixtureCheck = await timedFetch("/api/txline/fixtures", undefined, 20_000);
+      if (!fixtureCheck.ok) {
+        const payload = await fixtureCheck.json() as { error?: string };
+        throw new Error(payload.error ?? `Fixture check failed (${fixtureCheck.status}).`);
+      }
       setConnectionState("active");
+      setConnectionStep(6);
       setConnectionMessage("TxLINE devnet is active. Live fixtures, scores, lineups and odds are available.");
     } catch (error) {
       setConnectionState("error");
-      setConnectionMessage(error instanceof Error ? error.message : "Could not connect TxLINE devnet.");
+      const message = error instanceof Error && error.name === "AbortError"
+        ? `Step ${currentStep} timed out. Nothing is still running in the background—tap Connect to retry.`
+        : error instanceof Error ? error.message : "Could not connect TxLINE devnet.";
+      setConnectionMessage(message);
     }
   };
 
@@ -187,7 +233,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className={`devnet-status ${connectionState}`}><span>●</span><div><b>TxLINE · Solana devnet</b><small>{connectionMessage}</small></div></div>
+              <div className={`devnet-status ${connectionState}`}><span>●</span><div><b>TxLINE · Solana devnet{connectionState === "connecting" ? ` · Step ${connectionStep}/6` : ""}</b><small>{connectionMessage}</small>{connectionState === "connecting" && <i className="connection-progress"><em style={{ width: `${(connectionStep / 6) * 100}%` }} /></i>}</div></div>
             </div>
           )}
 
@@ -248,4 +294,3 @@ export default function Home() {
     </main>
   );
 }
-
