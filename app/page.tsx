@@ -1,27 +1,78 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Transaction } from "@solana/web3.js";
+import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { LiveFixture, LivePlayer, MatchFeed, normalizeFixtures, normalizeMatchFeed } from "@/lib/txline/normalize";
 
 type Position = "ATT" | "MID" | "DEF";
 type Screen = "home" | "fixtures" | "select" | "match" | "history" | "team" | "profile";
 type Participation = { fixtureId: string; teamId: string; playerIds: string[]; lockedAt: string };
 type TeamSummary = { id: string; name: string; matches: LiveFixture[]; supported: number };
+type WalletProvider = {
+  connect: () => Promise<{ publicKey: { toString: () => string } }>;
+  signTransaction?: (transaction: Transaction) => Promise<Transaction>;
+  signAndSendTransaction?: (transaction: Transaction) => Promise<{ signature: string }>;
+  signMessage?: (message: Uint8Array, encoding?: string) => Promise<{ signature: Uint8Array }>;
+};
 
 declare global {
   interface Window {
-    solana?: {
-      connect: () => Promise<{ publicKey: { toString: () => string } }>;
-      signTransaction?: (transaction: Transaction) => Promise<Transaction>;
-      signAndSendTransaction: (transaction: Transaction) => Promise<{ signature: string }>;
-      signMessage: (message: Uint8Array, encoding?: string) => Promise<{ signature: Uint8Array }>;
-    };
+    solana?: WalletProvider;
+    phantom?: { solana?: WalletProvider };
+    solflare?: WalletProvider;
   }
 }
 
 const positions: Position[] = ["ATT", "MID", "DEF"];
 const emptyFeed: MatchFeed = { players: [], participant1Score: null, participant2Score: null, action: null, sequence: null };
+const WORLD_CUP_FIXTURE_WINDOWS = [20615, 20645]; // 2026-06-11 and 2026-07-11 UTC epoch days.
+const DEVNET_RPC = "https://api.devnet.solana.com";
+const TXLINE_PROGRAM_ID = new PublicKey("6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J");
+const TXLINE_TOKEN_MINT = new PublicKey("4Zao8ocPhmMgq7PdsYWyxvqySMGx7xb9cMftPMkEokRG");
+
+function installedWallet() {
+  return window.phantom?.solana ?? window.solana ?? window.solflare;
+}
+
+function within<T>(promise: Promise<T>, milliseconds: number, label: string) {
+  return new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error(`${label} timed out. Check devnet in your wallet and retry.`)), milliseconds);
+    promise.then((value) => { window.clearTimeout(timer); resolve(value); }, (error) => { window.clearTimeout(timer); reject(error); });
+  });
+}
+
+async function prepareDevnetSubscription(publicKey: string) {
+  const connection = new Connection(DEVNET_RPC, "confirmed");
+  const user = new PublicKey(publicKey);
+  const userTokenAccount = getAssociatedTokenAddressSync(TXLINE_TOKEN_MINT, user, false, TOKEN_2022_PROGRAM_ID);
+  const [pricingMatrix] = PublicKey.findProgramAddressSync([new TextEncoder().encode("pricing_matrix")], TXLINE_PROGRAM_ID);
+  const [treasuryPda] = PublicKey.findProgramAddressSync([new TextEncoder().encode("token_treasury_v2")], TXLINE_PROGRAM_ID);
+  const treasuryVault = getAssociatedTokenAddressSync(TXLINE_TOKEN_MINT, treasuryPda, true, TOKEN_2022_PROGRAM_ID);
+  const transaction = new Transaction();
+  if (!(await within(connection.getAccountInfo(userTokenAccount), 15_000, "Solana devnet account check"))) {
+    transaction.add(createAssociatedTokenAccountInstruction(user, userTokenAccount, user, TXLINE_TOKEN_MINT, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID));
+  }
+  transaction.add(new TransactionInstruction({
+    programId: TXLINE_PROGRAM_ID,
+    keys: [
+      { pubkey: user, isSigner: true, isWritable: true },
+      { pubkey: pricingMatrix, isSigner: false, isWritable: false },
+      { pubkey: TXLINE_TOKEN_MINT, isSigner: false, isWritable: false },
+      { pubkey: userTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: treasuryVault, isSigner: false, isWritable: true },
+      { pubkey: treasuryPda, isSigner: false, isWritable: false },
+      { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    ],
+    data: Uint8Array.from([254, 28, 191, 138, 156, 179, 183, 53, 1, 0, 4]) as Buffer,
+  }));
+  const latest = await within(connection.getLatestBlockhash("confirmed"), 15_000, "Solana devnet blockhash request");
+  transaction.feePayer = user;
+  transaction.recentBlockhash = latest.blockhash;
+  return { connection, transaction, latest };
+}
 
 function teamCode(name: string) {
   const words = name.replace(/[^a-z0-9 ]/gi, "").trim().split(/\s+/);
@@ -74,6 +125,7 @@ export default function Home() {
   const [feed, setFeed] = useState<MatchFeed>(emptyFeed);
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState("");
+  const [feedSource, setFeedSource] = useState<"historical" | "snapshot" | "">("");
   const [selected, setSelected] = useState<Partial<Record<Position, LivePlayer>>>({});
   const [activePosition, setActivePosition] = useState<Position>("ATT");
   const [participations, setParticipations] = useState<Participation[]>(() => {
@@ -94,11 +146,21 @@ export default function Home() {
   const loadFixtures = async () => {
     setFixturesLoading(true);
     try {
-      const response = await timedFetch("/api/txline/fixtures");
-      if (!response.ok) throw new Error(response.status === 401 ? "Connect and activate TxLINE to load fixtures." : `TxLINE fixtures failed (${response.status}).`);
-      const normalized = normalizeFixtures(await response.json());
+      const responses = await Promise.all(WORLD_CUP_FIXTURE_WINDOWS.map((startEpochDay) => timedFetch(`/api/txline/fixtures?startEpochDay=${startEpochDay}`)));
+      const failed = responses.find((response) => !response.ok);
+      if (failed) {
+        if (failed.status === 401 || failed.status === 403) {
+          setConnected(false); setConnectionState("error");
+          throw new Error("TxLINE access is not active in this browser. Connect the funded devnet wallet and approve both requests.");
+        }
+        throw new Error(`TxLINE fixtures failed (${failed.status}).`);
+      }
+      const batches = await Promise.all(responses.map((response) => response.json()));
+      const byId = new Map<string, LiveFixture>();
+      for (const batch of batches) for (const fixture of normalizeFixtures(batch)) byId.set(fixture.id, fixture);
+      const normalized = [...byId.values()].sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
       setFixtures(normalized);
-      setMessage(normalized.length ? `${normalized.length} TxLINE fixtures loaded from devnet.` : "TxLINE returned no fixtures for this subscription.");
+      setMessage(normalized.length ? `${normalized.length} real TxLINE tournament fixtures loaded from devnet.` : "TxLINE returned no fixtures for the tournament windows.");
       setConnectionState("active");
     } catch (error) {
       setFixtures([]);
@@ -119,41 +181,47 @@ export default function Home() {
   }, []);
 
   const loadFeed = async (fixture: LiveFixture) => {
-    setFeedLoading(true); setFeedError(""); setFeed(emptyFeed);
+    setFeedLoading(true); setFeedError(""); setFeedSource(""); setFeed(emptyFeed);
     try {
-      let response = await timedFetch(`/api/txline/scores/${fixture.id}`);
-      if (!response.ok && Date.parse(fixture.startsAt) < sessionNow) response = await timedFetch(`/api/txline/scores/${fixture.id}?mode=historical`);
+      const isPast = Date.parse(fixture.startsAt) < sessionNow;
+      let mode: "historical" | "snapshot" = isPast ? "historical" : "snapshot";
+      let response = await timedFetch(`/api/txline/scores/${fixture.id}${mode === "historical" ? "?mode=historical" : ""}`);
+      if (!response.ok && isPast) {
+        mode = "snapshot";
+        response = await timedFetch(`/api/txline/scores/${fixture.id}`);
+      }
       if (!response.ok) throw new Error(`TxLINE score feed failed (${response.status}).`);
       setFeed(normalizeMatchFeed(await response.json()));
+      setFeedSource(mode);
     } catch (error) {
       setFeedError(error instanceof Error ? error.message : "Could not load the TxLINE match feed.");
     } finally { setFeedLoading(false); }
   };
 
   const connectTxline = async () => {
-    if (!window.solana) { setConnectionState("error"); setMessage("Install Phantom or another Solana wallet first."); return; }
+    const provider = installedWallet();
+    if (!provider) { setConnectionState("error"); setMessage("Open this site in Phantom's browser, or in Chrome with Phantom installed, then retry."); return; }
+    if (!provider.signMessage || (!provider.signTransaction && !provider.signAndSendTransaction)) { setConnectionState("error"); setMessage("This wallet cannot sign the TxLINE activation requests. Use Phantom or Solflare."); return; }
     let step = 1;
     try {
       setConnectionState("connecting"); setConnectionStep(step); setMessage("Connecting wallet…");
-      const walletConnection = await window.solana.connect();
+      const walletConnection = await provider.connect();
       const publicKey = walletConnection.publicKey.toString(); setWallet(publicKey);
       step = 2; setConnectionStep(step); setMessage("Starting TxLINE guest session…");
       const session = await timedFetch("/api/txline/session", { method: "POST" }).then((response) => response.json()) as { jwt?: string; error?: string };
       if (!session.jwt) throw new Error(session.error ?? "TxLINE guest session failed.");
-      step = 3; setConnectionStep(step); setMessage("Preparing free devnet subscription…");
-      const prepared = await timedFetch("/api/txline/prepare", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ publicKey }) }).then((response) => response.json()) as { transaction?: string; error?: string };
-      if (!prepared.transaction) throw new Error(prepared.error ?? "Subscription preparation failed.");
-      const transaction = Transaction.from(Uint8Array.from(atob(prepared.transaction), (character) => character.charCodeAt(0)));
+      step = 3; setConnectionStep(step); setMessage("Preparing free TxLINE subscription on devnet…");
+      const prepared = await prepareDevnetSubscription(publicKey);
       step = 4; setConnectionStep(step); setMessage("Approve the devnet subscription in your wallet…");
       let txSig: string;
-      if (window.solana.signTransaction) {
-        const signed = await window.solana.signTransaction(transaction);
-        const encoded = btoa(String.fromCharCode(...signed.serialize()));
-        const sent = await timedFetch("/api/txline/send", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ transaction: encoded, publicKey }) }, 35_000).then((response) => response.json()) as { signature?: string; error?: string };
-        if (!sent.signature) throw new Error(sent.error ?? "Devnet transaction failed."); txSig = sent.signature;
-      } else txSig = (await window.solana.signAndSendTransaction(transaction)).signature;
+      if (provider.signTransaction) {
+        const signed = await provider.signTransaction(prepared.transaction);
+        txSig = await within(prepared.connection.sendRawTransaction(signed.serialize(), { skipPreflight: false }), 25_000, "Devnet transaction submission");
+        const confirmation = await within(prepared.connection.confirmTransaction({ signature: txSig, ...prepared.latest }, "confirmed"), 35_000, "TxLINE subscription confirmation");
+        if (confirmation.value.err) throw new Error("The TxLINE devnet subscription transaction failed.");
+      } else txSig = (await provider.signAndSendTransaction!(prepared.transaction)).signature;
       step = 5; setConnectionStep(step); setMessage("Activating TxLINE API token…");
-      const signedMessage = await window.solana.signMessage(new TextEncoder().encode(`${txSig}::${session.jwt}`), "utf8");
+      const signedMessage = await provider.signMessage(new TextEncoder().encode(`${txSig}::${session.jwt}`), "utf8");
       const walletSignature = btoa(String.fromCharCode(...signedMessage.signature));
       const activation = await timedFetch("/api/txline/activate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ txSig, walletSignature }) });
       if (!activation.ok) throw new Error((await activation.json()).error ?? "TxLINE activation failed.");
@@ -209,7 +277,7 @@ export default function Home() {
         <div className="home-intro"><span className="eyebrow">TXLINE · LIVE DEVNET DATA</span><h1>Your World Cup.</h1><p>Nothing on this screen is filled with demonstration sports data.</p></div>
         {!connected && <button className="connect-data-card" onClick={connectTxline}><span>LIVE DATA LOCKED</span><h2>Connect TxLINE devnet</h2><p>Complete the free wallet subscription to load fixtures, official squads, scores and player statistics.</p><b>{connectionState === "connecting" ? `Step ${connectionStep}/6 · ${message}` : "Connect wallet →"}</b></button>}
         {connected && <>
-          <div className="rail-heading"><div><h2>Matches</h2><span>Direct from /fixtures/snapshot</span></div><button onClick={() => setScreen("fixtures")}>See all</button></div>
+          <div className="rail-heading"><div><h2>Matches</h2><span>Real tournament history + upcoming fixtures</span></div><button onClick={() => setScreen("fixtures")}>See all</button></div>
           {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <div className="horizontal-rail match-rail">{fixtures.slice(0, 8).map((fixture) => <button className="match-card real-match-card" key={fixture.id} onClick={() => openFixture(fixture)}><div><span className="pill final-pill">{fixtureStatus(fixture)}</span><time>{new Date(fixture.startsAt).toLocaleDateString()}</time></div><section><span><em>{teamMark(fixture.homeTeam)}</em><b>{teamCode(fixture.homeTeam)}</b></span><i>VS</i><span><em>{teamMark(fixture.awayTeam)}</em><b>{teamCode(fixture.awayTeam)}</b></span></section><footer><span>{new Date(fixture.startsAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><b>Open match →</b></footer></button>)}</div> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
           <div className="rail-heading team-heading"><div><h2>Teams</h2><span>Derived from real fixtures</span></div></div>
           {teams.length ? <div className="horizontal-rail team-rail">{teams.map((team) => <button className="team-career-card real-team-card" key={team.id} onClick={() => { setActiveTeamPage(team); setScreen("team"); }}><span className="real-team-badge">{teamMark(team.name)}</span><div className="team-card-title"><div><b>{team.name}</b><small>{team.matches.length} TxLINE fixtures</small></div></div><div className="team-card-score"><strong>{team.supported}</strong><span>matches you supported</span></div><div className="team-card-rank"><span>{team.supported ? "History ready" : "Not followed"}</span><b>›</b></div></button>)}</div> : null}
@@ -225,7 +293,7 @@ export default function Home() {
       </div>}
 
       {screen === "match" && activeFixture && <div className="screen enter"><button className="back" onClick={() => activeTeamPage ? setScreen("team") : setScreen("home")}>← Matches</button><div className="scoreboard real-scoreboard"><span className="real-team-mark">{teamMark(activeFixture.homeTeam)}</span><div><small>{fixtureStatus(activeFixture)} · TXLINE</small><b>{matchScore[0] ?? "—"} <i>—</i> {matchScore[1] ?? "—"}</b><span>{activeFixture.homeTeam} · {activeFixture.awayTeam}</span></div><span className="real-team-mark away">{teamMark(activeFixture.awayTeam)}</span></div>
-        {feedLoading ? <div className="real-empty"><b>Refreshing TxLINE match feed…</b></div> : feedError ? <div className="real-empty error"><b>Match feed unavailable</b><span>{feedError}</span></div> : <><div className="live-summary"><div><span>YOUR THREE</span><b>{yourTotal?.toFixed(1) ?? "—"}</b></div><div className="index-ring"><b>{yourTotal !== null && oppositionTotal !== null ? ((yourTotal / oppositionTotal) * 100).toFixed(1) : "—"}</b><small>MATCH INDEX</small></div><div><span>BEST OPP.</span><b>{oppositionTotal?.toFixed(1) ?? "—"}</b></div></div><p className="status-line">{feed.action ? `Latest TxLINE action: ${feed.action}${feed.sequence ? ` · seq ${feed.sequence}` : ""}` : "Waiting for match actions."}</p><div className="compare-label"><span>YOUR SELECTED PLAYERS</span><span>TXLINE IMPACT</span></div><div className="rating-stack">{displayedPlayers.length ? displayedPlayers.map((player) => <div className="rating-row" key={player.id}><span className={`position-tag ${player.position.toLowerCase()}`}>{player.position}</span><span><b>{player.name}</b><small>{playerStatLine(player)}</small></span><strong>{player.impactRating?.toFixed(1) ?? "—"}</strong></div>) : <div className="real-empty"><b>No locked trio for this match</b><span>Official match data is still shown without assigning you a score.</span></div>}</div><div className="compare-label opposition-label"><span>BEST OF THE OPPOSITION</span><span>REAL STATS ONLY</span></div><div className="opposition-row">{positions.map((position) => { const player = oppositionBest.find((item) => item.position === position); return <div key={position}><span>{position}</span><b>{player?.name ?? "Waiting"}</b><strong>{player?.impactRating?.toFixed(1) ?? "—"}</strong></div>; })}</div><div className="real-rank-pending"><b>Rank and percentile pending</b><span>They will appear only after real user entries for this fixture are settled. No distribution is fabricated.</span></div></>}
+        {feedLoading ? <div className="real-empty"><b>Refreshing TxLINE match feed…</b></div> : feedError ? <div className="real-empty error"><b>Match feed unavailable</b><span>{feedError}</span></div> : <><div className="live-summary"><div><span>YOUR THREE</span><b>{yourTotal?.toFixed(1) ?? "—"}</b></div><div className="index-ring"><b>{yourTotal !== null && oppositionTotal !== null ? ((yourTotal / oppositionTotal) * 100).toFixed(1) : "—"}</b><small>MATCH INDEX</small></div><div><span>BEST OPP.</span><b>{oppositionTotal?.toFixed(1) ?? "—"}</b></div></div><p className="status-line">{feedSource === "historical" ? "Full TxLINE historical sequence" : "Latest TxLINE score snapshot"}{feed.action ? ` · ${feed.action}${feed.sequence ? ` · seq ${feed.sequence}` : ""}` : " · waiting for match actions"}</p><div className="compare-label"><span>YOUR SELECTED PLAYERS</span><span>TXLINE IMPACT</span></div><div className="rating-stack">{displayedPlayers.length ? displayedPlayers.map((player) => <div className="rating-row" key={player.id}><span className={`position-tag ${player.position.toLowerCase()}`}>{player.position}</span><span><b>{player.name}</b><small>{playerStatLine(player)}</small></span><strong>{player.impactRating?.toFixed(1) ?? "—"}</strong></div>) : <div className="real-empty"><b>No locked trio for this match</b><span>Official match data is still shown without assigning you a score.</span></div>}</div><div className="compare-label opposition-label"><span>BEST OF THE OPPOSITION</span><span>REAL STATS ONLY</span></div><div className="opposition-row">{positions.map((position) => { const player = oppositionBest.find((item) => item.position === position); return <div key={position}><span>{position}</span><b>{player?.name ?? "Waiting"}</b><strong>{player?.impactRating?.toFixed(1) ?? "—"}</strong></div>; })}</div><div className="real-rank-pending"><b>Rank and percentile pending</b><span>They will appear only after real user entries for this fixture are settled. No distribution is fabricated.</span></div></>}
       </div>}
 
       {screen === "history" && <div className="screen enter"><div className="page-title"><span className="eyebrow">REAL USER HISTORY</span><h1>Your matches</h1><p>Only fixtures where this device locked a real TxLINE lineup.</p></div>{participations.length ? <div className="real-list">{participations.map((entry) => { const fixture = fixtures.find((item) => item.id === entry.fixtureId); return fixture ? <FixtureRow key={entry.fixtureId} fixture={fixture} onClick={() => openFixture(fixture)} /> : null; })}</div> : <div className="real-empty large"><b>No participation history yet</b><span>Choose three players from a real official lineup. That match will then appear here.</span></div>}</div>}

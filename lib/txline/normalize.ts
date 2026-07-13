@@ -102,19 +102,6 @@ export function normalizeFixtures(payload: unknown): LiveFixture[] {
   }).sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
 }
 
-function walk(value: unknown, visitor: (source: UnknownRecord) => boolean, depth = 0): UnknownRecord | null {
-  if (depth > 8) return null;
-  if (Array.isArray(value)) {
-    for (const item of value) { const found = walk(item, visitor, depth + 1); if (found) return found; }
-    return null;
-  }
-  const source = record(value);
-  if (!source) return null;
-  if (visitor(source)) return source;
-  for (const child of Object.values(source)) { const found = walk(child, visitor, depth + 1); if (found) return found; }
-  return null;
-}
-
 function actionName(value: UnknownRecord) {
   return text(first(value, ["Action", "action", "Type", "type"])).toLowerCase();
 }
@@ -128,18 +115,33 @@ function positionFrom(entry: UnknownRecord): LivePlayer["position"] {
   return "OTHER";
 }
 
-function lineupSide(container: UnknownRecord, participant: 1 | 2): unknown[] {
-  const side = record(first(container, participant === 1 ? ["Participant1", "participant1"] : ["Participant2", "participant2"]));
-  const rows = first(side, ["lineups", "Lineups", "players", "Players"]);
-  return Array.isArray(rows) ? rows : [];
+function latestLineups(rows: unknown[]): unknown[][] {
+  for (let index = rows.length - 1; index >= 0; index -= 1) {
+    const row = record(rows[index]);
+    const sides = first(row, ["lineups", "Lineups"]);
+    if (!Array.isArray(sides) || sides.length < 2) continue;
+    const participantIds = [text(first(row, ["participant1Id", "Participant1Id"])), text(first(row, ["participant2Id", "Participant2Id"]))];
+    const orderedSides = participantIds.every(Boolean)
+      ? participantIds.map((participantId) => sides.find((side) => text(first(record(side), ["id", "Id"])) === participantId)).map((side, sideIndex) => side ?? sides[sideIndex])
+      : sides.slice(0, 2);
+    const normalized = orderedSides.map((side) => {
+      const sideRecord = record(side);
+      const players = first(sideRecord, ["lineups", "Lineups", "players", "Players"]);
+      return Array.isArray(players) ? players : [];
+    });
+    if (normalized.some((players) => players.length)) return normalized;
+  }
+  return [[], []];
 }
 
-function statMap(payload: unknown, participant: 1 | 2): UnknownRecord {
-  const stats = walk(payload, (source) => Object.keys(source).some((key) => key.toLowerCase() === "playerstatssoccer"));
-  if (!stats) return {};
-  const key = Object.keys(stats).find((name) => name.toLowerCase() === "playerstatssoccer");
-  const soccer = record(key ? stats[key] : null);
-  return record(first(soccer, participant === 1 ? ["Participant1", "participant1"] : ["Participant2", "participant2"])) ?? {};
+function statMap(rows: unknown[], participant: 1 | 2): UnknownRecord {
+  for (let index = rows.length - 1; index >= 0; index -= 1) {
+    const row = record(rows[index]);
+    const soccer = record(first(row, ["playerStatsSoccer", "PlayerStatsSoccer"]));
+    const side = record(first(soccer, participant === 1 ? ["Participant1", "participant1"] : ["Participant2", "participant2"]));
+    if (side && Object.keys(side).length) return side;
+  }
+  return {};
 }
 
 function rating(stats: UnknownRecord | null) {
@@ -157,28 +159,27 @@ function latestScore(payload: unknown) {
   const rows = payloadRows(payload);
   for (let index = rows.length - 1; index >= 0; index -= 1) {
     const row = record(rows[index]);
-    const state = record(first(row, ["State", "state"]));
-    const soccer = record(first(state, ["Soccer", "soccer"])) ?? state;
-    const p1 = first(soccer, ["Participant1", "participant1"]);
-    const p2 = first(soccer, ["Participant2", "participant2"]);
-    if (typeof p1 === "number" && typeof p2 === "number") return { participant1Score: p1, participant2Score: p2 };
+    const soccer = record(first(row, ["scoreSoccer", "ScoreSoccer"]));
+    const p1 = record(first(soccer, ["Participant1", "participant1"]));
+    const p2 = record(first(soccer, ["Participant2", "participant2"]));
+    const p1Total = record(first(p1, ["Total", "total"]));
+    const p2Total = record(first(p2, ["Total", "total"]));
+    const p1Goals = first(p1Total, ["Goals", "goals"]);
+    const p2Goals = first(p2Total, ["Goals", "goals"]);
+    if (p1Goals !== undefined && p2Goals !== undefined) {
+      return { participant1Score: numberValue(p1Goals), participant2Score: numberValue(p2Goals) };
+    }
   }
   return { participant1Score: null, participant2Score: null };
 }
 
 export function normalizeMatchFeed(payload: unknown): MatchFeed {
   const rows = payloadRows(payload);
-  const lineupEvent = [...rows].reverse().map(record).find((row) => row && actionName(row).includes("lineup"));
-  const data = record(first(lineupEvent ?? null, ["Data", "data"])) ?? lineupEvent ?? null;
-  const lineupContainer = data ? walk(data, (source) => {
-    const side1 = record(first(source, ["Participant1", "participant1"]));
-    const side2 = record(first(source, ["Participant2", "participant2"]));
-    return Boolean(side1 && side2 && (Array.isArray(first(side1, ["lineups", "Lineups"])) || Array.isArray(first(side2, ["lineups", "Lineups"]))));
-  }) : null;
+  const lineups = latestLineups(rows);
   const players: LivePlayer[] = [];
   for (const participant of [1, 2] as const) {
-    const stats = statMap(payload, participant);
-    for (const item of lineupContainer ? lineupSide(lineupContainer, participant) : []) {
+    const stats = statMap(rows, participant);
+    for (const item of lineups[participant - 1] ?? []) {
       const entry = record(item);
       if (!entry) continue;
       const playerObject = record(first(entry, ["player", "Player"])) ?? entry;
@@ -209,4 +210,3 @@ export function normalizeMatchFeed(payload: unknown): MatchFeed {
   const latest = record(rows.at(-1));
   return { players, ...score, action: latest ? actionName(latest) || null : null, sequence: latest && first(latest, ["Seq", "seq"]) !== undefined ? numberValue(first(latest, ["Seq", "seq"])) : null };
 }
-
