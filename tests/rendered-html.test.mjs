@@ -37,5 +37,6 @@ test("uses position-weighted scoring and real stored data in the mobile app", as
   assert.match(page, /\/api\/data\/fixtures/);
   assert.match(page, /storedFeed/);
   assert.match(cli, /syncHistorical/);
-  assert.match(cli, /Historical sync finished/);
+  assert.match(cli, /metadataOnly/);
+  assert.match(cli, /Historical sync/);
 });

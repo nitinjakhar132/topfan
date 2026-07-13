@@ -303,7 +303,7 @@ async function fixtureCheck(session) {
   await streamProbe("/odds/stream", session, "Odds stream");
 }
 
-async function syncHistorical(session, fixtureId, endpointArgument) {
+async function syncHistorical(session, fixtureId, endpointArgument, metadataOnly = false) {
   const endpoint = (endpointArgument || process.env.TXLINE_INGEST_URL || "").replace(/\/$/, "");
   if (!endpoint) fail("Set TXLINE_INGEST_URL to the app origin, for example http://localhost:3000 or the deployed site URL.");
   const batches = await Promise.all(FIXTURE_WINDOWS.map((day) => apiJson(`/fixtures/snapshot?startEpochDay=${day}`, session)));
@@ -313,14 +313,16 @@ async function syncHistorical(session, fixtureId, endpointArgument) {
     const value = Number(fixture.StartTime);
     return value > 10_000_000_000 ? value / 1000 : value;
   };
-  const selected = fixtureId
+  const selected = metadataOnly
+    ? fixtures.filter((fixture) => nowSeconds - startSeconds(fixture) < 6 * 60 * 60)
+    : fixtureId
     ? fixtures.filter((fixture) => String(fixture.FixtureId) === fixtureId)
     : fixtures.filter((fixture) => nowSeconds - startSeconds(fixture) >= 6 * 60 * 60);
   if (!selected.length) fail(fixtureId ? `Fixture ${fixtureId} was not returned by the configured World Cup windows.` : "No historical fixtures are currently eligible.");
   const secret = await ingestSecret();
   let imported = 0;
   const failures = [];
-  console.log(`Importing ${selected.length} historical fixture${selected.length === 1 ? "" : "s"} into ${endpoint}...`);
+  console.log(`Importing ${selected.length} ${metadataOnly ? "current/upcoming" : "historical"} fixture${selected.length === 1 ? "" : "s"} into ${endpoint}...`);
   let nextIndex = 0;
   const importOne = async () => {
     while (nextIndex < selected.length) {
@@ -329,7 +331,7 @@ async function syncHistorical(session, fixtureId, endpointArgument) {
       const fixture = selected[index];
     const id = String(fixture.FixtureId);
     try {
-      const history = await apiJson(`/scores/historical/${id}`, session);
+      const history = metadataOnly ? [] : await apiJson(`/scores/historical/${id}`, session);
       const headers = { "content-type": "application/json", Authorization: `Bearer ${secret}` };
       if (process.env.TXLINE_SITES_BYPASS_TOKEN) headers["OAI-Sites-Authorization"] = `Bearer ${process.env.TXLINE_SITES_BYPASS_TOKEN}`;
       const response = await fetch(`${endpoint}/api/data/ingest/txline`, {
@@ -350,7 +352,7 @@ async function syncHistorical(session, fixtureId, endpointArgument) {
     }
   };
   await Promise.all(Array.from({ length: Math.min(4, selected.length) }, () => importOne()));
-  console.log(`Historical sync finished: ${imported} imported, ${failures.length} unavailable.`);
+  console.log(`${metadataOnly ? "Fixture index" : "Historical sync"} finished: ${imported} imported, ${failures.length} unavailable.`);
   if (failures.length) console.log(`Unavailable fixtures: ${failures.map((failure) => failure.fixtureId).join(", ")}`);
   if (!imported) process.exitCode = 1;
 }
@@ -388,6 +390,10 @@ async function run() {
   }
 
   const session = await readSession();
+  if (command === "index") {
+    await syncHistorical(session, undefined, process.argv[3], true);
+    return;
+  }
   if (command === "sync") {
     const fixtureId = process.argv[3] === "all" ? undefined : process.argv[3];
     if (fixtureId && !/^\d+$/.test(fixtureId)) fail("Usage: npm run txline:sync -- [fixtureId]");
@@ -416,7 +422,7 @@ async function run() {
     console.log(`Attributed action samples: ${JSON.stringify(actionSamples, null, 2).slice(0, 12_000)}`);
     return;
   }
-  if (command !== "check") fail("Commands: activate, check, historical <fixtureId>, inspect <fixtureId>, sync [fixtureId], secret");
+  if (command !== "check") fail("Commands: activate, check, historical <fixtureId>, inspect <fixtureId>, sync [fixtureId], index [endpoint], secret");
   await fixtureCheck(session);
 }
 

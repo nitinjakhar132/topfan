@@ -16,6 +16,7 @@
     "txline:check": "node scripts/txline-devnet.mjs check",
     "txline:historical": "node scripts/txline-devnet.mjs historical",
     "txline:sync": "node scripts/txline-devnet.mjs sync",
+    "txline:index": "node scripts/txline-devnet.mjs index",
     "txline:secret": "node scripts/txline-devnet.mjs secret"
   },
   "dependencies": {
