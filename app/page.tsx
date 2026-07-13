@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Transaction } from "@solana/web3.js";
 
 type Position = "ATT" | "MID" | "DEF";
-type Screen = "home" | "select" | "live" | "team" | "profile";
+type Screen = "home" | "select" | "live" | "history" | "matchDetail" | "team" | "profile";
 type Player = {
   id: string;
   name: string;
@@ -27,6 +27,27 @@ type TeamCareer = {
   rank: number;
   percentile: number;
   primary?: boolean;
+};
+type MatchRecord = {
+  id: string;
+  teamName: string;
+  teamCode: string;
+  teamFlag: string;
+  opponent: string;
+  opponentCode: string;
+  opponentFlag: string;
+  result: string;
+  stage: string;
+  date: string;
+  participated: boolean;
+  yourScore?: number;
+  bestOpposition: number;
+  averageScore: number;
+  highScore: number;
+  rank?: number;
+  entrants: number;
+  percentile?: number;
+  contribution?: number;
 };
 
 declare global {
@@ -62,13 +83,67 @@ const careers: TeamCareer[] = [
   { id: "esp", name: "Spain", code: "ESP", flag: "🇪🇸", matches: 1, score: 104.6, rank: 690, percentile: 61 },
 ];
 
-const matchHistory = [
-  { opponent: "France", flag: "🇫🇷", result: "2–1", contribution: 112.6, base: 99.1, bonus: 13.5, place: "Top 10%" },
-  { opponent: "Denmark", flag: "🇩🇰", result: "1–0", contribution: 108.4, base: 94.2, bonus: 14.2, place: "Top 5%" },
-  { opponent: "Japan", flag: "🇯🇵", result: "2–0", contribution: 101.8, base: 92.8, bonus: 9.0, place: "Top 40%" },
-  { opponent: "Morocco", flag: "🇲🇦", result: "1–1", contribution: 99.7, base: 88.4, bonus: 11.3, place: "Top 25%" },
-  { opponent: "Spain", flag: "🇪🇸", result: "0–0", contribution: 99.9, base: 85.2, bonus: 14.7, place: "Top 2%" },
+const userMatches: MatchRecord[] = [
+  { id: "arg-fra", teamName: "Argentina", teamCode: "ARG", teamFlag: "🇦🇷", opponent: "France", opponentCode: "FRA", opponentFlag: "🇫🇷", result: "2–1", stage: "Semi-final", date: "12 Jul", participated: true, yourScore: 112.6, bestOpposition: 103.8, averageScore: 96.4, highScore: 117.9, rank: 18, entrants: 48291, percentile: 99.96, contribution: 112.6 },
+  { id: "jpn-mar", teamName: "Japan", teamCode: "JPN", teamFlag: "🇯🇵", opponent: "Morocco", opponentCode: "MAR", opponentFlag: "🇲🇦", result: "2–0", stage: "Quarter-final", date: "9 Jul", participated: true, yourScore: 104.8, bestOpposition: 98.2, averageScore: 93.1, highScore: 111.4, rank: 142, entrants: 11840, percentile: 98.8, contribution: 104.8 },
+  { id: "arg-den", teamName: "Argentina", teamCode: "ARG", teamFlag: "🇦🇷", opponent: "Denmark", opponentCode: "DEN", opponentFlag: "🇩🇰", result: "1–0", stage: "Quarter-final", date: "8 Jul", participated: true, yourScore: 108.4, bestOpposition: 101.5, averageScore: 91.8, highScore: 113.2, rank: 91, entrants: 45102, percentile: 99.8, contribution: 108.4 },
+  { id: "mar-esp", teamName: "Morocco", teamCode: "MAR", teamFlag: "🇲🇦", opponent: "Spain", opponentCode: "ESP", opponentFlag: "🇪🇸", result: "1–1", stage: "Round of 16", date: "4 Jul", participated: true, yourScore: 99.7, bestOpposition: 105.6, averageScore: 94.9, highScore: 112.0, rank: 74, entrants: 9722, percentile: 99.2, contribution: 99.7 },
+  { id: "esp-eng", teamName: "Spain", teamCode: "ESP", teamFlag: "🇪🇸", opponent: "England", opponentCode: "ENG", opponentFlag: "🏴", result: "1–1", stage: "Group stage", date: "27 Jun", participated: true, yourScore: 104.6, bestOpposition: 102.9, averageScore: 95.7, highScore: 114.6, rank: 690, entrants: 22840, percentile: 97.0, contribution: 104.6 },
 ];
+
+const teamOpponents = [
+  { name: "France", code: "FRA", flag: "🇫🇷", result: "2–1", stage: "Semi-final", date: "12 Jul" },
+  { name: "Denmark", code: "DEN", flag: "🇩🇰", result: "1–0", stage: "Quarter-final", date: "8 Jul" },
+  { name: "Japan", code: "JPN", flag: "🇯🇵", result: "2–0", stage: "Round of 16", date: "4 Jul" },
+  { name: "Morocco", code: "MAR", flag: "🇲🇦", result: "1–1", stage: "Group stage", date: "29 Jun" },
+  { name: "Spain", code: "ESP", flag: "🇪🇸", result: "0–0", stage: "Group stage", date: "24 Jun" },
+  { name: "Canada", code: "CAN", flag: "🇨🇦", result: "3–1", stage: "Group stage", date: "20 Jun" },
+];
+
+function teamMatches(team: TeamCareer): MatchRecord[] {
+  return teamOpponents.map((opponent, index) => {
+    const participated = index < team.matches;
+    const yourScore = participated ? Number((112.6 - index * 3.2 - (team.id === "arg" ? 0 : 4.5)).toFixed(1)) : undefined;
+    const averageScore = Number((95.3 - index * 0.7).toFixed(1));
+    return {
+      id: `${team.id}-${opponent.code.toLowerCase()}`,
+      teamName: team.name,
+      teamCode: team.code,
+      teamFlag: team.flag,
+      opponent: opponent.name,
+      opponentCode: opponent.code,
+      opponentFlag: opponent.flag,
+      result: opponent.result,
+      stage: opponent.stage,
+      date: opponent.date,
+      participated,
+      yourScore,
+      bestOpposition: Number((103.8 - index * 0.5).toFixed(1)),
+      averageScore,
+      highScore: Number((117.9 - index * 0.6).toFixed(1)),
+      rank: participated ? Math.max(1, team.rank + index * 7) : undefined,
+      entrants: Math.max(2400, 48291 - index * 4300),
+      percentile: participated ? Math.max(72, team.percentile - index * 1.4) : undefined,
+      contribution: participated ? yourScore : undefined,
+    };
+  });
+}
+
+function scorePosition(score: number) {
+  return Math.min(96, Math.max(4, ((score - 75) / 45) * 100));
+}
+
+function StandingGraph({ match }: { match: MatchRecord }) {
+  const bars = [16, 30, 48, 70, 91, 100, 92, 73, 50, 29, 14];
+  return <div className="standing-graph" role="img" aria-label={match.participated ? `Your score ${match.yourScore}, average ${match.averageScore}, ahead of ${match.percentile}% of supporters` : `Supporter score distribution with an average score of ${match.averageScore}`}>
+    <div className="graph-plot">
+      <div className="graph-bars" aria-hidden="true">{bars.map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}</div>
+      <span className="average-marker" style={{ left: `${scorePosition(match.averageScore)}%` }}><b>AVG</b><i /></span>
+      {match.participated && match.yourScore !== undefined && <span className="user-marker" style={{ left: `${scorePosition(match.yourScore)}%` }}><b>YOU · {match.yourScore.toFixed(1)}</b><i /></span>}
+    </div>
+    <div className="graph-axis"><span>75</span><span>SUPPORTER SCORES</span><span>120</span></div>
+  </div>;
+}
 
 const opposition: Record<Position, { name: string; rating: number }> = {
   ATT: { name: "Kylian Mbappe", rating: 8.3 },
@@ -85,6 +160,8 @@ export default function Home() {
   const [selected, setSelected] = useState<Partial<Record<Position, Player>>>({});
   const [activePosition, setActivePosition] = useState<Position>("ATT");
   const [activeTeam, setActiveTeam] = useState<TeamCareer>(careers[0]);
+  const [activeMatch, setActiveMatch] = useState<MatchRecord>(userMatches[0]);
+  const [detailReturn, setDetailReturn] = useState<"history" | "team">("history");
   const [viewPlayer, setViewPlayer] = useState<Player | null>(null);
   const [wallet, setWallet] = useState("");
   const [connectionState, setConnectionState] = useState<"idle" | "connecting" | "active" | "error">("idle");
@@ -185,6 +262,11 @@ export default function Home() {
   };
 
   const openTeam = (team: TeamCareer) => { setActiveTeam(team); setScreen("team"); };
+  const openMatch = (match: MatchRecord, returnTo: "history" | "team") => {
+    setActiveMatch(match);
+    setDetailReturn(returnTo);
+    setScreen("matchDetail");
+  };
 
   return (
     <main className="stage">
@@ -202,7 +284,7 @@ export default function Home() {
             <div className="screen enter home-screen">
               <div className="home-intro"><span className="eyebrow">YOUR WORLD CUP</span><h1>Follow your teams.</h1><p>Choose three when official squads drop. Build a separate supporter career for every team.</p></div>
 
-              <div className="rail-heading"><div><h2>Matches</h2><span>Lineups, live and recent</span></div><button>See all</button></div>
+              <div className="rail-heading"><div><h2>Matches</h2><span>Lineups, live and recent</span></div><button onClick={() => setScreen("history")}>See all</button></div>
               <div className="horizontal-rail match-rail">
                 <button className="match-card open-card" onClick={() => setScreen("select")}>
                   <div><span className="pill open">LINEUPS IN</span><time>Locks in 08:42</time></div>
@@ -214,7 +296,7 @@ export default function Home() {
                   <section><span>🏴<b>ENG</b></span><i>1–1</i><span>🇪🇸<b>ESP</b></span></section>
                   <footer><span>Your Spain trio</span><b>101.4 →</b></footer>
                 </button>
-                <button className="match-card final-card">
+                <button className="match-card final-card" onClick={() => openMatch(userMatches[1], "history")}>
                   <div><span className="pill final-pill">FINAL</span><time>Yesterday</time></div>
                   <section><span>🇯🇵<b>JPN</b></span><i>2–0</i><span>🇲🇦<b>MAR</b></span></section>
                   <footer><span>Match contribution</span><b>104.8</b></footer>
@@ -271,14 +353,61 @@ export default function Home() {
             </div>
           )}
 
+          {screen === "history" && (
+            <div className="screen enter user-history-screen">
+              <div className="page-title"><span className="eyebrow">YOUR JOURNEY</span><h1>Match history</h1><p>Every match where you backed a team and chose your three.</p></div>
+              <div className="history-overview"><div><b>{userMatches.length}</b><span>Matches played</span></div><div><b>3</b><span>Teams backed</span></div><div><b>Top 2%</b><span>Average finish</span></div></div>
+              <div className="section-heading"><h2>Earlier matches</h2><span className="muted">Tap for your result</span></div>
+              <div className="history-match-list">
+                {userMatches.map((match) => <button key={match.id} onClick={() => openMatch(match, "history")}>
+                  <span className="history-flags"><i>{match.teamFlag}</i><i>{match.opponentFlag}</i></span>
+                  <span className="history-fixture"><b>{match.teamCode} {match.result} {match.opponentCode}</b><small>{match.stage} · {match.date}</small></span>
+                  <span className="history-result"><b>{match.yourScore?.toFixed(1)}</b><small>Top {Math.max(.1, 100 - (match.percentile ?? 0)).toFixed(1)}%</small></span>
+                  <i className="history-arrow">›</i>
+                </button>)}
+              </div>
+            </div>
+          )}
+
+          {screen === "matchDetail" && (
+            <div className="screen enter match-detail-screen">
+              <button className="back" onClick={() => setScreen(detailReturn)}>← {detailReturn === "team" ? activeMatch.teamName : "Match history"}</button>
+              <div className="detail-fixture">
+                <span>{activeMatch.teamFlag}<b>{activeMatch.teamCode}</b></span>
+                <div><small>{activeMatch.stage} · FINAL</small><strong>{activeMatch.result}</strong><time>{activeMatch.date}</time></div>
+                <span>{activeMatch.opponentFlag}<b>{activeMatch.opponentCode}</b></span>
+              </div>
+
+              {activeMatch.participated ? <>
+                <div className="detail-score-grid">
+                  <div className="your-score"><span>YOUR SCORE</span><b>{activeMatch.yourScore?.toFixed(1)}</b><small>Match contribution</small></div>
+                  <div><span>BEST OF {activeMatch.opponentCode}</span><b>{activeMatch.bestOpposition.toFixed(1)}</b><small>Opposition benchmark</small></div>
+                  <div><span>SUPPORTER AVG</span><b>{activeMatch.averageScore.toFixed(1)}</b><small>All {activeMatch.teamCode} users</small></div>
+                </div>
+                <div className="standing-copy"><span className="eyebrow">YOUR STANDING</span><h1>Ahead of {Math.floor(activeMatch.percentile ?? 0)}% of fans</h1><p>Your score was {((activeMatch.yourScore ?? 0) - activeMatch.averageScore).toFixed(1)} points above the supporter average.</p></div>
+              </> : <>
+                <div className="missed-match"><span>—</span><div><b>You did not play this match</b><small>You can still explore how supporters scored and what the opposition benchmark was.</small></div></div>
+                <div className="detail-score-grid two-score-grid">
+                  <div><span>BEST OF {activeMatch.opponentCode}</span><b>{activeMatch.bestOpposition.toFixed(1)}</b><small>Opposition benchmark</small></div>
+                  <div><span>SUPPORTER AVG</span><b>{activeMatch.averageScore.toFixed(1)}</b><small>{activeMatch.entrants.toLocaleString()} entries</small></div>
+                </div>
+                <div className="standing-copy"><span className="eyebrow">MATCH DISTRIBUTION</span><h1>How supporters scored</h1><p>The marker shows the average score. No personal rank is created for a match you did not enter.</p></div>
+              </>}
+
+              <StandingGraph match={activeMatch} />
+              {activeMatch.participated && <div className="rank-line"><div><span>MATCH RANK</span><b>#{activeMatch.rank?.toLocaleString()}</b></div><div><span>OUT OF</span><b>{activeMatch.entrants.toLocaleString()}</b></div><div><span>PERCENTILE</span><b>{activeMatch.percentile?.toFixed(1)}%</b></div></div>}
+              <p className="graph-help">Higher scores appear further right. The bars show where most supporter scores were grouped.</p>
+            </div>
+          )}
+
           {screen === "team" && (
             <div className="screen enter team-history-screen">
               <button className="back" onClick={() => setScreen("home")}>← Your teams</button>
               <div className="team-history-title"><span className="flag large">{activeTeam.flag}</span><div>{activeTeam.primary && <span className="primary-label dark">◆ PRIMARY FAN · LOCKED</span>}<h1>{activeTeam.name}</h1><p>Your supporter career and the team&apos;s World Cup journey.</p></div></div>
               <div className="rank-hero"><div><small>TEAM RANK</small><b>#{activeTeam.rank}</b><span>Top {Math.max(1, 100 - activeTeam.percentile)}% of supporters</span></div><strong>{activeTeam.score.toFixed(1)}<small>CUMULATIVE</small></strong></div>
               <div className="score-explainer"><b>How top fan is decided</b><p>Every match adds your normalized trio score plus up to 15 placement points. This rewards excellent picks even when the match itself produces few rating events.</p><code>career = Σ (75% accuracy + 25% matchup + placement bonus)</code></div>
-              <div className="section-heading"><h2>World Cup history</h2><span className="muted">User + team</span></div>
-              <div className="team-match-history">{matchHistory.slice(0, activeTeam.matches).map((match) => <button key={match.opponent}><span className="history-opponent">{match.flag}<i><b>vs {match.opponent}</b><small>{activeTeam.code} {match.result} · {match.place}</small></i></span><span className="history-score"><b>+{match.contribution.toFixed(1)}</b><small>{match.base.toFixed(1)} + {match.bonus.toFixed(1)} bonus</small></span></button>)}</div>
+              <div className="section-heading"><h2>World Cup history</h2><span className="muted">Every team match</span></div>
+              <div className="team-match-history">{teamMatches(activeTeam).map((match) => <button key={match.id} onClick={() => openMatch(match, "team")}><span className="history-opponent">{match.opponentFlag}<i><b>vs {match.opponent}</b><small>{activeTeam.code} {match.result} · {match.stage}</small></i></span><span className={`history-score ${match.participated ? "" : "missed"}`}><b>{match.participated ? `+${match.contribution?.toFixed(1)}` : "View stats"}</b><small>{match.participated ? `Top ${Math.max(.1, 100 - (match.percentile ?? 0)).toFixed(1)}%` : "Did not play"}</small></span></button>)}</div>
               <div className="section-heading"><h2>Players followed</h2><span className="muted">Tap for history</span></div>
               <div className="squad-grid">{players.slice(0, 6).map((player) => <button key={player.id} onClick={() => setViewPlayer(player)}><span className="shirt-number">{player.number}</span><b>{player.name.split(" ").at(-1)}</b><small>{positionNames[player.position]}</small><strong>{player.rating.toFixed(1)}</strong></button>)}</div>
             </div>
@@ -287,7 +416,7 @@ export default function Home() {
           {screen === "profile" && <div className="screen enter profile-screen"><div className="avatar">NS</div><span className="eyebrow">SUPPORTER PROFILE</span><h1>Nitin</h1><p>Four team careers. Eleven matches supported.</p><div className="profile-list">{careers.map((team) => <button key={team.id} onClick={() => openTeam(team)}><span>{team.flag} {team.name}{team.primary ? " · Primary" : ""}</span><b>#{team.rank} ›</b></button>)}</div></div>}
         </div>
 
-        {screen !== "select" && <nav className="bottom-nav"><button className={screen === "home" || screen === "live" ? "active" : ""} onClick={() => setScreen("home")}><span>▣</span>Home</button><button className={screen === "team" ? "active" : ""} onClick={() => openTeam(careers[0])}><span>◉</span>Teams</button><button className={screen === "profile" ? "active" : ""} onClick={() => setScreen("profile")}><span>●</span>Profile</button></nav>}
+        {screen !== "select" && <nav className="bottom-nav"><button className={screen === "home" || screen === "live" ? "active" : ""} onClick={() => setScreen("home")}><span>▣</span>Home</button><button className={screen === "history" || screen === "matchDetail" ? "active" : ""} onClick={() => setScreen("history")}><span>◷</span>History</button><button className={screen === "profile" ? "active" : ""} onClick={() => setScreen("profile")}><span>●</span>Profile</button></nav>}
 
         {viewPlayer && <div className="modal-backdrop" onClick={() => setViewPlayer(null)}><article className="player-sheet" onClick={(event) => event.stopPropagation()}><button className="sheet-close" onClick={() => setViewPlayer(null)}>×</button><div className="player-hero"><span className="shirt-number big">{viewPlayer.number}</span><div><span className="eyebrow">ARGENTINA · {positionNames[viewPlayer.position].toUpperCase()}</span><h2>{viewPlayer.name}</h2></div><strong>{viewPlayer.rating.toFixed(1)}</strong></div><div className="player-stat-grid"><div><b>{viewPlayer.minutes}</b><span>Minutes</span></div><div><b>{viewPlayer.goals}</b><span>Goals</span></div><div><b>{viewPlayer.shots}</b><span>Shots</span></div><div><b>{viewPlayer.cards}</b><span>Cards</span></div></div><div className="section-heading"><h2>Match history</h2><span className="muted">TxLINE impact</span></div><div className="history"><div><span>🇫🇷 <b>vs France</b></span><small>{viewPlayer.goals} goal · 90 min</small><strong>8.1</strong></div><div><span>🇩🇰 <b>vs Denmark</b></span><small>84 min · 2 shots</small><strong>7.6</strong></div><div><span>🇯🇵 <b>vs Japan</b></span><small>76 min · no cards</small><strong>7.4</strong></div></div><p className="data-note"><i /> Goals, shots, cards, penalties, substitutions and minutes are supported. TxLINE does not document assists, tackles, passing, chances or saves.</p></article></div>}
       </section>
