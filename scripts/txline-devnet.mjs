@@ -314,7 +314,7 @@ async function syncHistorical(session, fixtureId, endpointArgument, metadataOnly
     return value > 10_000_000_000 ? value / 1000 : value;
   };
   const selected = metadataOnly
-    ? fixtures.filter((fixture) => nowSeconds - startSeconds(fixture) < 6 * 60 * 60)
+    ? fixtures
     : fixtureId
     ? fixtures.filter((fixture) => String(fixture.FixtureId) === fixtureId)
     : fixtures.filter((fixture) => nowSeconds - startSeconds(fixture) >= 6 * 60 * 60);
@@ -337,7 +337,7 @@ async function syncHistorical(session, fixtureId, endpointArgument, metadataOnly
       const response = await fetch(`${endpoint}/api/data/ingest/txline`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ fixture, history }),
+        body: JSON.stringify({ fixture, history, metadataOnly }),
         signal: AbortSignal.timeout(120_000),
       });
       const result = await response.text();

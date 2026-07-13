@@ -21,6 +21,7 @@ test("stores TxLINE history with coverage and reconciliation metadata", async ()
   assert.match(ingest, /TXLINE_INGEST_SECRET/);
   assert.match(ingest, /historicalFetchedAt/);
   assert.match(ingest, /reconciledAt/);
+  assert.match(ingest, /metadataOnly/);
 });
 
 test("uses position-weighted scoring and real stored data in the mobile app", async () => {

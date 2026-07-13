@@ -7,7 +7,7 @@ import {
 import { createTxlineArchive } from "@/lib/txline/archive";
 import { normalizeFixtures } from "@/lib/txline/normalize";
 
-type IngestBody = { fixture?: unknown; history?: unknown };
+type IngestBody = { fixture?: unknown; history?: unknown; metadataOnly?: boolean };
 
 function environment() {
   return env as unknown as { TXLINE_INGEST_SECRET?: string };
@@ -35,11 +35,11 @@ async function ingest(request: Request) {
   let body: IngestBody;
   try { body = await request.json() as IngestBody; } catch { return Response.json({ error: "Invalid JSON body." }, { status: 400 }); }
   const normalized = normalizeFixtures([body.fixture]);
-  if (normalized.length !== 1 || !Array.isArray(body.history)) {
+  if (normalized.length !== 1 || (!body.metadataOnly && !Array.isArray(body.history))) {
     return Response.json({ error: "Expected one raw TxLINE fixture and its historical event array." }, { status: 400 });
   }
 
-  const archive = createTxlineArchive(normalized[0], body.history);
+  const archive = createTxlineArchive(normalized[0], Array.isArray(body.history) ? body.history : []);
   const uniquePlayers = [...new Map(archive.players.map((player) => [player.id, player])).values()];
   await ensureArchiveDatabase();
   const fixture = archive.fixture;
@@ -58,6 +58,29 @@ async function ingest(request: Request) {
 
   const homeScore = fixture.homeTeamId === fixture.participant1Id ? fixture.participant1Score : fixture.participant2Score;
   const awayScore = fixture.awayTeamId === fixture.participant2Id ? fixture.participant2Score : fixture.participant1Score;
+  const fixtureUpdate = body.metadataOnly ? {
+    competitionId: fixture.competitionId || null,
+    participant1Id: fixture.participant1Id,
+    participant2Id: fixture.participant2Id,
+    homeTeamId: fixture.homeTeamId,
+    awayTeamId: fixture.awayTeamId,
+    startsAt: fixture.startsAt,
+    rawUpdatedAt: now,
+  } : {
+    competitionId: fixture.competitionId || null,
+    participant1Id: fixture.participant1Id,
+    participant2Id: fixture.participant2Id,
+    homeTeamId: fixture.homeTeamId,
+    awayTeamId: fixture.awayTeamId,
+    startsAt: fixture.startsAt,
+    phase: fixture.phase,
+    homeScore,
+    awayScore,
+    finalisedAt: fixture.finalised ? now : null,
+    dataCoverage: archive.coverage,
+    formulaVersion: archive.formulaVersion,
+    rawUpdatedAt: now,
+  };
   await db.insert(fixtures).values({
     id: fixture.id,
     competitionId: fixture.competitionId || null,
@@ -75,22 +98,12 @@ async function ingest(request: Request) {
     rawUpdatedAt: now,
   }).onConflictDoUpdate({
     target: fixtures.id,
-    set: {
-      competitionId: fixture.competitionId || null,
-      participant1Id: fixture.participant1Id,
-      participant2Id: fixture.participant2Id,
-      homeTeamId: fixture.homeTeamId,
-      awayTeamId: fixture.awayTeamId,
-      startsAt: fixture.startsAt,
-      phase: fixture.phase,
-      homeScore,
-      awayScore,
-      finalisedAt: fixture.finalised ? now : null,
-      dataCoverage: archive.coverage,
-      formulaVersion: archive.formulaVersion,
-      rawUpdatedAt: now,
-    },
+    set: fixtureUpdate,
   });
+
+  if (body.metadataOnly) {
+    return Response.json({ fixtureId: fixture.id, metadataOnly: true, coverage: "unavailable" });
+  }
 
   await db.delete(lineups).where(eq(lineups.fixtureId, fixture.id));
   await db.delete(playerMatchStats).where(eq(playerMatchStats.fixtureId, fixture.id));
