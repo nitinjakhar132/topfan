@@ -149,9 +149,51 @@ function authHeaders(session) {
   return { Authorization: `Bearer ${session.jwt}`, "X-Api-Token": session.apiToken };
 }
 
+function field(source, name) {
+  if (!source || typeof source !== "object") return undefined;
+  const key = Object.keys(source).find((candidate) => candidate.toLowerCase() === name.toLowerCase());
+  return key ? source[key] : undefined;
+}
+
 async function apiJson(path, session) {
   const body = await responseText(`${API_ORIGIN}/api${path}`, { headers: authHeaders(session) });
-  return JSON.parse(body);
+  try {
+    return JSON.parse(body);
+  } catch (error) {
+    const dataRows = body
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => JSON.parse(line.slice(5).trim()));
+    if (dataRows.length) return dataRows.flatMap((row) => Array.isArray(row) ? row : [row]);
+    throw error;
+  }
+}
+
+async function optionalApi(path, session, label) {
+  try {
+    const payload = await apiJson(path, session);
+    const count = Array.isArray(payload) ? payload.length : 1;
+    console.log(`${label}: OK (${count} record${count === 1 ? "" : "s"})`);
+    return payload;
+  } catch (error) {
+    console.log(`${label}: unavailable (${error instanceof Error ? error.message.slice(0, 240) : error})`);
+    return null;
+  }
+}
+
+async function streamProbe(path, session, label) {
+  try {
+    const response = await fetch(`${API_ORIGIN}/api${path}`, {
+      headers: { ...authHeaders(session), Accept: "text/event-stream" },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) fail(`${response.status} ${await response.text()}`);
+    console.log(`${label}: OK (${response.headers.get("content-type") || "stream opened"})`);
+    await response.body?.cancel();
+  } catch (error) {
+    console.log(`${label}: unavailable (${error instanceof Error ? error.message.slice(0, 240) : error})`);
+  }
 }
 
 async function fixtureCheck(session) {
@@ -162,23 +204,91 @@ async function fixtureCheck(session) {
   console.log(`Competitions: ${competitions.join(", ") || "not supplied"}`);
 
   const nowSeconds = Date.now() / 1000;
-  const historicalFixture = fixtures
-    .filter((fixture) => nowSeconds - Number(fixture.StartTime) >= 6 * 60 * 60 && nowSeconds - Number(fixture.StartTime) <= 14 * 24 * 60 * 60)
-    .sort((a, b) => Number(b.StartTime) - Number(a.StartTime))[0];
+  const startSeconds = (fixture) => {
+    const value = Number(fixture.StartTime);
+    return value > 10_000_000_000 ? value / 1000 : value;
+  };
+  const historicalFixtures = fixtures
+    .filter((fixture) => nowSeconds - startSeconds(fixture) >= 6 * 60 * 60 && nowSeconds - startSeconds(fixture) <= 14 * 24 * 60 * 60)
+    .sort((a, b) => startSeconds(b) - startSeconds(a));
+  const historicalFixture = historicalFixtures[0];
   if (!historicalFixture) {
     console.log("Historical API: no fixture currently falls inside TxLINE's 6-hour-to-2-week per-fixture window.");
     return;
   }
   const events = await apiJson(`/scores/historical/${historicalFixture.FixtureId}`, session);
   const rows = Array.isArray(events) ? events : [];
-  const lineupRow = [...rows].reverse().find((row) => Array.isArray(row.lineups) && row.lineups.length);
-  const statsRow = [...rows].reverse().find((row) => row.playerStatsSoccer);
-  const playerCount = lineupRow?.lineups?.reduce((sum, team) => sum + (Array.isArray(team.lineups) ? team.lineups.length : 0), 0) || 0;
-  const statKeys = statsRow?.playerStatsSoccer
-    ? Object.values(statsRow.playerStatsSoccer).reduce((sum, team) => sum + Object.keys(team || {}).length, 0)
+  const lineupRow = [...rows].reverse().find((row) => Array.isArray(field(row, "lineups")) && field(row, "lineups").length);
+  const statsRow = [...rows].reverse().find((row) => field(row, "playerStatsSoccer"));
+  const lineups = field(lineupRow, "lineups") || [];
+  const playerCount = lineups.reduce((sum, team) => {
+    const players = field(team, "lineups");
+    return sum + (Array.isArray(players) ? players.length : 0);
+  }, 0);
+  const playerStats = field(statsRow, "playerStatsSoccer");
+  const statKeys = playerStats
+    ? Object.values(playerStats).reduce((sum, team) => sum + Object.keys(team || {}).length, 0)
     : 0;
+  const actionCounts = new Map();
+  for (const row of rows) {
+    const action = String(field(row, "action") || "unknown");
+    actionCounts.set(action, (actionCounts.get(action) || 0) + 1);
+  }
+  const commonActions = [...actionCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([action, count]) => `${action}:${count}`).join(", ");
+  const playerEventCounts = new Map();
+  for (const row of rows) {
+    const action = String(field(row, "action") || "unknown");
+    const soccer = field(row, "dataSoccer");
+    const attributed = ["playerId", "playerInId", "playerOutId"].some((key) => Number(field(soccer, key)) > 0);
+    if (attributed) playerEventCounts.set(action, (playerEventCounts.get(action) || 0) + 1);
+  }
+  const attributedActions = [...playerEventCounts.entries()].sort((a, b) => b[1] - a[1]).map(([action, count]) => `${action}:${count}`).join(", ");
+  const relevantActions = [...actionCounts.entries()]
+    .filter(([action]) => /goal|shot|card|penalty|substitution|game_finalised|lineup/i.test(action))
+    .sort((a, b) => b[1] - a[1])
+    .map(([action, count]) => `${action}:${count}`).join(", ");
   console.log(`Historical API: OK (fixture ${historicalFixture.FixtureId}, ${rows.length} events)`);
   console.log(`Historical payload: ${playerCount} lineup players, ${statKeys} player-stat records`);
+  console.log(`Historical actions: ${commonActions}`);
+  console.log(`Relevant actions: ${relevantActions || "none"}`);
+  console.log(`Player-attributed actions: ${attributedActions || "none"}`);
+  const shotRow = rows.find((row) => String(field(row, "action")) === "shot");
+  const shotSoccer = field(shotRow, "dataSoccer");
+  const shotData = field(shotRow, "data");
+  console.log(`Historical event fields: ${Object.keys(shotRow || rows[0] || {}).join(", ")}`);
+  console.log(`Shot data fields: ${Object.keys(shotSoccer || shotData || {}).join(", ") || "none"}`);
+  console.log(`Shot data sample: ${JSON.stringify(shotSoccer ?? shotData ?? null).slice(0, 500)}`);
+
+  for (const candidate of historicalFixtures.slice(1, 5)) {
+    const candidateEvents = await apiJson(`/scores/historical/${candidate.FixtureId}`, session);
+    const candidateRows = Array.isArray(candidateEvents) ? candidateEvents : [];
+    const candidateStats = [...candidateRows].reverse().map((row) => field(row, "playerStatsSoccer")).find((value) => value && Object.values(value).some((team) => Object.keys(team || {}).length));
+    const attributed = candidateRows.filter((row) => {
+      const data = field(row, "dataSoccer") || field(row, "data");
+      return data && typeof data === "object" && Object.keys(data).length > 0;
+    }).length;
+    const secondary = candidateRows.some((row) => field(row, "coverageSecondaryData") === true);
+    const statCount = candidateStats ? Object.values(candidateStats).reduce((sum, team) => sum + Object.keys(team || {}).length, 0) : 0;
+    console.log(`Coverage sample ${candidate.FixtureId}: ${candidateRows.length} events, ${statCount} player-stat records, ${attributed} non-empty action-data records, secondary=${secondary}`);
+    if (candidate === historicalFixtures[1]) {
+      for (const actionName of ["shot", "goal", "yellow_card", "red_card", "substitution"]) {
+        const sample = candidateRows.find((row) => String(field(row, "action")) === actionName && Object.keys(field(row, "data") || {}).length);
+        console.log(`${actionName} data sample: ${JSON.stringify(field(sample, "data") || null).slice(0, 500)}`);
+      }
+    }
+  }
+
+  await optionalApi(`/scores/snapshot/${historicalFixture.FixtureId}`, session, "Scores snapshot API");
+  const upcomingFixture = fixtures.filter((fixture) => startSeconds(fixture) > nowSeconds).sort((a, b) => startSeconds(a) - startSeconds(b))[0];
+  if (upcomingFixture) await optionalApi(`/odds/snapshot/${upcomingFixture.FixtureId}`, session, "Odds snapshot API");
+  const finalRow = [...rows].reverse().find((row) => String(field(row, "action")) === "game_finalised" && Number(field(row, "seq")) > 0);
+  if (finalRow) {
+    await optionalApi(`/scores/stat-validation?fixtureId=${historicalFixture.FixtureId}&seq=${field(finalRow, "seq")}&statKeys=1,2`, session, "Stat-validation API");
+  } else {
+    console.log("Stat-validation API: no game_finalised sequence found in this history");
+  }
+  await streamProbe("/scores/stream", session, "Scores stream");
+  await streamProbe("/odds/stream", session, "Odds stream");
 }
 
 async function run() {
