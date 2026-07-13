@@ -18,6 +18,10 @@ export const teams = sqliteTable("teams", {
 
 export const fixtures = sqliteTable("fixtures", {
   id: text("id").primaryKey(),
+  competitionId: text("competition_id"),
+  competitionName: text("competition_name"),
+  participant1Id: text("participant_1_id"),
+  participant2Id: text("participant_2_id"),
   homeTeamId: text("home_team_id").notNull(),
   awayTeamId: text("away_team_id").notNull(),
   startsAt: text("starts_at").notNull(),
@@ -25,6 +29,8 @@ export const fixtures = sqliteTable("fixtures", {
   homeScore: integer("home_score"),
   awayScore: integer("away_score"),
   finalisedAt: text("finalised_at"),
+  dataCoverage: text("data_coverage", { enum: ["complete", "partial", "unavailable"] }).notNull().default("unavailable"),
+  formulaVersion: text("formula_version"),
   rawUpdatedAt: text("raw_updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [index("fixtures_starts_at_idx").on(table.startsAt)]);
 
@@ -32,7 +38,7 @@ export const players = sqliteTable("players", {
   id: text("id").primaryKey(),
   teamId: text("team_id").notNull(),
   name: text("name").notNull(),
-  position: text("position", { enum: ["ATT", "MID", "DEF", "GK"] }).notNull(),
+  position: text("position", { enum: ["ATT", "MID", "DEF", "GK", "OTHER"] }).notNull(),
   shirtNumber: integer("shirt_number"),
 });
 
@@ -62,6 +68,9 @@ export const playerMatchStats = sqliteTable("player_match_stats", {
   playerId: text("player_id").notNull(),
   minutes: integer("minutes").notNull().default(0),
   goals: integer("goals").notNull().default(0),
+  assists: integer("assists").notNull().default(0),
+  chancesCreated: integer("chances_created").notNull().default(0),
+  tackles: integer("tackles").notNull().default(0),
   ownGoals: integer("own_goals").notNull().default(0),
   shots: integer("shots").notNull().default(0),
   shotsOnTarget: integer("shots_on_target").notNull().default(0),
@@ -69,7 +78,11 @@ export const playerMatchStats = sqliteTable("player_match_stats", {
   redCards: integer("red_cards").notNull().default(0),
   penaltyAttempts: integer("penalty_attempts").notNull().default(0),
   penaltyGoals: integer("penalty_goals").notNull().default(0),
+  performanceScore: real("performance_score").notNull().default(0),
   impactRating: real("impact_rating").notNull().default(6),
+  formulaVersion: text("formula_version").notNull().default("position-v1"),
+  dataCoverage: text("data_coverage", { enum: ["complete", "partial", "unavailable"] }).notNull().default("unavailable"),
+  source: text("source").notNull().default("txline-devnet"),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [primaryKey({ columns: [table.fixtureId, table.playerId] })]);
 
@@ -97,8 +110,25 @@ export const matchScores = sqliteTable("match_scores", {
 export const feedEvents = sqliteTable("feed_events", {
   fixtureId: text("fixture_id").notNull(),
   sequence: integer("sequence").notNull(),
+  action: text("action").notNull().default("unknown"),
+  participant: integer("participant"),
+  eventEpoch: integer("event_epoch"),
   payload: text("payload").notNull(),
   status: text("status").notNull().default("confirmed"),
   receivedAt: text("received_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [primaryKey({ columns: [table.fixtureId, table.sequence] })]);
 
+export const fixtureSyncState = sqliteTable("fixture_sync_state", {
+  fixtureId: text("fixture_id").primaryKey(),
+  source: text("source").notNull().default("txline-devnet"),
+  lastSequence: integer("last_sequence").notNull().default(0),
+  eventCount: integer("event_count").notNull().default(0),
+  playerCount: integer("player_count").notNull().default(0),
+  attributedEventCount: integer("attributed_event_count").notNull().default(0),
+  dataCoverage: text("data_coverage", { enum: ["complete", "partial", "unavailable"] }).notNull().default("unavailable"),
+  historicalFetchedAt: text("historical_fetched_at"),
+  reconciledAt: text("reconciled_at"),
+  finalised: integer("finalised", { mode: "boolean" }).notNull().default(false),
+  lastError: text("last_error"),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});

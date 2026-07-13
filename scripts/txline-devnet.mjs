@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { randomBytes } from "node:crypto";
 import {
   Connection,
   Keypair,
@@ -29,6 +30,7 @@ const LEAGUES = [];
 const FIXTURE_WINDOWS = [20615, 20645];
 const KEYPAIR_PATH = resolve(process.env.TXLINE_KEYPAIR_PATH || "work/txline-devnet-keypair.json");
 const SESSION_PATH = resolve(process.env.TXLINE_SESSION_PATH || "work/txline-devnet-session.json");
+const INGEST_SECRET_PATH = resolve(process.env.TXLINE_INGEST_SECRET_PATH || "work/txline-ingest-secret.txt");
 const EXPECTED_WALLET = process.env.TXLINE_EXPECTED_WALLET || "";
 const connection = new Connection(RPC, "confirmed");
 
@@ -61,6 +63,16 @@ async function loadOrCreateKeypair() {
 async function readSession() {
   if (!existsSync(SESSION_PATH)) return {};
   return JSON.parse(await readFile(SESSION_PATH, "utf8"));
+}
+
+async function ingestSecret() {
+  if (process.env.TXLINE_INGEST_SECRET) return process.env.TXLINE_INGEST_SECRET;
+  if (existsSync(INGEST_SECRET_PATH)) return (await readFile(INGEST_SECRET_PATH, "utf8")).trim();
+  const secret = randomBytes(32).toString("hex");
+  await mkdir(dirname(INGEST_SECRET_PATH), { recursive: true });
+  await writeFile(INGEST_SECRET_PATH, secret, { mode: 0o600 });
+  console.log(`Created private ingestion secret at ${INGEST_SECRET_PATH}`);
+  return secret;
 }
 
 async function ensureBalance(keypair) {
@@ -291,8 +303,68 @@ async function fixtureCheck(session) {
   await streamProbe("/odds/stream", session, "Odds stream");
 }
 
+async function syncHistorical(session, fixtureId, endpointArgument) {
+  const endpoint = (endpointArgument || process.env.TXLINE_INGEST_URL || "").replace(/\/$/, "");
+  if (!endpoint) fail("Set TXLINE_INGEST_URL to the app origin, for example http://localhost:3000 or the deployed site URL.");
+  const batches = await Promise.all(FIXTURE_WINDOWS.map((day) => apiJson(`/fixtures/snapshot?startEpochDay=${day}`, session)));
+  const fixtures = [...new Map(batches.flat().map((fixture) => [String(fixture.FixtureId), fixture])).values()];
+  const nowSeconds = Date.now() / 1000;
+  const startSeconds = (fixture) => {
+    const value = Number(fixture.StartTime);
+    return value > 10_000_000_000 ? value / 1000 : value;
+  };
+  const selected = fixtureId
+    ? fixtures.filter((fixture) => String(fixture.FixtureId) === fixtureId)
+    : fixtures.filter((fixture) => nowSeconds - startSeconds(fixture) >= 6 * 60 * 60);
+  if (!selected.length) fail(fixtureId ? `Fixture ${fixtureId} was not returned by the configured World Cup windows.` : "No historical fixtures are currently eligible.");
+  const secret = await ingestSecret();
+  let imported = 0;
+  const failures = [];
+  console.log(`Importing ${selected.length} historical fixture${selected.length === 1 ? "" : "s"} into ${endpoint}...`);
+  let nextIndex = 0;
+  const importOne = async () => {
+    while (nextIndex < selected.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      const fixture = selected[index];
+    const id = String(fixture.FixtureId);
+    try {
+      const history = await apiJson(`/scores/historical/${id}`, session);
+      const headers = { "content-type": "application/json", Authorization: `Bearer ${secret}` };
+      if (process.env.TXLINE_SITES_BYPASS_TOKEN) headers["OAI-Sites-Authorization"] = `Bearer ${process.env.TXLINE_SITES_BYPASS_TOKEN}`;
+      const response = await fetch(`${endpoint}/api/data/ingest/txline`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ fixture, history }),
+        signal: AbortSignal.timeout(120_000),
+      });
+      const result = await response.text();
+      if (!response.ok) fail(`${response.status}: ${result.slice(0, 2_000)}`);
+      imported += 1;
+      console.log(`[${index + 1}/${selected.length}] ${id}: ${result}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push({ fixtureId: id, error: message });
+      console.log(`[${index + 1}/${selected.length}] ${id}: skipped (${message.slice(0, 2_000)})`);
+    }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(4, selected.length) }, () => importOne()));
+  console.log(`Historical sync finished: ${imported} imported, ${failures.length} unavailable.`);
+  if (failures.length) console.log(`Unavailable fixtures: ${failures.map((failure) => failure.fixtureId).join(", ")}`);
+  if (!imported) process.exitCode = 1;
+}
+
 async function run() {
   const command = process.argv[2] || "check";
+  if (command === "secret") {
+    const secret = await ingestSecret();
+    const devVarsPath = resolve(".dev.vars");
+    await writeFile(devVarsPath, `TXLINE_INGEST_SECRET=${secret}\n`, { mode: 0o600 });
+    console.log(`Ingestion secret is ready at ${INGEST_SECRET_PATH}.`);
+    console.log(`Local development binding is ready at ${devVarsPath}.`);
+    return;
+  }
   if (command === "activate") {
     const keypair = await loadOrCreateKeypair();
     const balance = await ensureBalance(keypair);
@@ -316,6 +388,12 @@ async function run() {
   }
 
   const session = await readSession();
+  if (command === "sync") {
+    const fixtureId = process.argv[3] === "all" ? undefined : process.argv[3];
+    if (fixtureId && !/^\d+$/.test(fixtureId)) fail("Usage: npm run txline:sync -- [fixtureId]");
+    await syncHistorical(session, fixtureId, process.argv[4]);
+    return;
+  }
   if (command === "historical") {
     const fixtureId = process.argv[3];
     if (!/^\d+$/.test(fixtureId || "")) fail("Usage: npm run txline:historical -- <fixtureId>");
@@ -323,7 +401,22 @@ async function run() {
     console.log(JSON.stringify(events, null, 2));
     return;
   }
-  if (command !== "check") fail("Commands: activate, check, historical <fixtureId>");
+  if (command === "inspect") {
+    const fixtureId = process.argv[3];
+    if (!/^\d+$/.test(fixtureId || "")) fail("Usage: node scripts/txline-devnet.mjs inspect <fixtureId>");
+    const events = await apiJson(`/scores/historical/${fixtureId}`, session);
+    const rows = Array.isArray(events) ? events : [];
+    const lineupRow = [...rows].reverse().find((row) => Array.isArray(field(row, "lineups")) && field(row, "lineups").length);
+    const sides = field(lineupRow, "lineups") || [];
+    const firstSide = sides[0] || {};
+    const lineup = field(firstSide, "lineups") || [];
+    console.log(`Lineup side sample: ${JSON.stringify(firstSide).slice(0, 4_000)}`);
+    console.log(`Lineup player sample: ${JSON.stringify(lineup[0] || null).slice(0, 2_000)}`);
+    const actionSamples = rows.filter((row) => Object.keys(field(row, "data") || {}).length).slice(0, 12);
+    console.log(`Attributed action samples: ${JSON.stringify(actionSamples, null, 2).slice(0, 12_000)}`);
+    return;
+  }
+  if (command !== "check") fail("Commands: activate, check, historical <fixtureId>, inspect <fixtureId>, sync [fixtureId], secret");
   await fixtureCheck(session);
 }
 

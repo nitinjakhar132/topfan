@@ -9,6 +9,18 @@ type Position = "ATT" | "MID" | "DEF";
 type Screen = "home" | "fixtures" | "select" | "match" | "history" | "team" | "profile";
 type Participation = { fixtureId: string; teamId: string; playerIds: string[]; lockedAt: string };
 type TeamSummary = { id: string; name: string; matches: LiveFixture[]; supported: number };
+type StoredFixtureRow = {
+  id: string; participant1Id: string; participant2Id: string; homeTeamId: string; awayTeamId: string;
+  startsAt: string; phase: string; competitionId: string | null; homeScore: number | null; awayScore: number | null;
+  homeTeam: { id: string; name: string } | null; awayTeam: { id: string; name: string } | null;
+};
+type StoredMatch = {
+  fixture: StoredFixtureRow;
+  players: Array<{ id: string; name: string; position: LivePlayer["position"]; shirtNumber: number | null; teamId: string; starter: boolean; stats: null | {
+    goals: number; ownGoals: number; shots: number; shotsOnTarget: number; yellowCards: number; redCards: number;
+    penaltyAttempts: number; penaltyGoals: number; impactRating: number; dataCoverage: "complete" | "partial" | "unavailable";
+  } }>;
+};
 type WalletProvider = {
   connect: () => Promise<{ publicKey: { toString: () => string } }>;
   signTransaction?: (transaction: Transaction) => Promise<Transaction>;
@@ -96,6 +108,54 @@ function shortWallet(value: string) {
   return value ? `${value.slice(0, 4)}…${value.slice(-3)}` : "Connected";
 }
 
+function storedFixture(row: StoredFixtureRow): LiveFixture | null {
+  if (!row.homeTeam || !row.awayTeam) return null;
+  const participant1 = row.participant1Id === row.homeTeamId ? row.homeTeam.name : row.awayTeam.name;
+  const participant2 = row.participant2Id === row.awayTeamId ? row.awayTeam.name : row.homeTeam.name;
+  return {
+    id: row.id,
+    participant1Id: row.participant1Id,
+    participant2Id: row.participant2Id,
+    participant1,
+    participant2,
+    homeTeamId: row.homeTeamId,
+    awayTeamId: row.awayTeamId,
+    homeTeam: row.homeTeam.name,
+    awayTeam: row.awayTeam.name,
+    startsAt: row.startsAt,
+    gameState: row.phase === "final" ? 5 : null,
+    competitionId: row.competitionId ?? "",
+  };
+}
+
+function storedFeed(detail: StoredMatch): MatchFeed {
+  const fixture = detail.fixture;
+  const participant1IsHome = fixture.participant1Id === fixture.homeTeamId;
+  return {
+    players: detail.players.map((player) => ({
+      id: player.id,
+      name: player.name,
+      number: player.shirtNumber,
+      position: player.position,
+      starter: player.starter,
+      participant: player.teamId === fixture.participant1Id ? 1 : 2,
+      goals: player.stats?.goals ?? 0,
+      ownGoals: player.stats?.ownGoals ?? 0,
+      shots: player.stats?.shots ?? 0,
+      shotsOnTarget: player.stats?.shotsOnTarget ?? 0,
+      yellowCards: player.stats?.yellowCards ?? 0,
+      redCards: player.stats?.redCards ?? 0,
+      penaltyAttempts: player.stats?.penaltyAttempts ?? 0,
+      penaltyGoals: player.stats?.penaltyGoals ?? 0,
+      impactRating: player.stats && player.stats.dataCoverage !== "unavailable" ? player.stats.impactRating : null,
+    })),
+    participant1Score: participant1IsHome ? fixture.homeScore : fixture.awayScore,
+    participant2Score: participant1IsHome ? fixture.awayScore : fixture.homeScore,
+    action: fixture.phase === "final" ? "game_finalised" : fixture.phase,
+    sequence: null,
+  };
+}
+
 function playerStatLine(player: LivePlayer) {
   const stats = [`${player.goals} goals`, `${player.shots} shots`];
   if (player.yellowCards) stats.push(`${player.yellowCards} yellow`);
@@ -146,6 +206,18 @@ export default function Home() {
   const loadFixtures = async () => {
     setFixturesLoading(true);
     try {
+      const storedResponse = await timedFetch("/api/data/fixtures");
+      if (storedResponse.ok) {
+        const storedRows = await storedResponse.json() as StoredFixtureRow[];
+        const archived = storedRows.map(storedFixture).filter(Boolean) as LiveFixture[];
+        if (archived.length) {
+          setFixtures(archived.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)));
+          setConnected(true);
+          setConnectionState("active");
+          setMessage(`${archived.length} real TxLINE fixture${archived.length === 1 ? "" : "s"} loaded from the stored devnet archive.`);
+          return;
+        }
+      }
       const responses = await Promise.all(WORLD_CUP_FIXTURE_WINDOWS.map((startEpochDay) => timedFetch(`/api/txline/fixtures?startEpochDay=${startEpochDay}`)));
       const failed = responses.find((response) => !response.ok);
       if (failed) {
@@ -173,8 +245,7 @@ export default function Home() {
   useEffect(() => {
     fetch("/api/txline/status").then((response) => response.json()).then((status: { connected?: boolean }) => {
       setConnected(Boolean(status.connected));
-      if (status.connected) return loadFixtures();
-      setFixturesLoading(false);
+      return loadFixtures();
     }).catch(() => { setFixturesLoading(false); setMessage("Could not check the TxLINE session."); });
     // loadFixtures is intentionally run once for the cookie-backed session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -183,6 +254,15 @@ export default function Home() {
   const loadFeed = async (fixture: LiveFixture) => {
     setFeedLoading(true); setFeedError(""); setFeedSource(""); setFeed(emptyFeed);
     try {
+      const storedResponse = await timedFetch(`/api/data/fixtures/${fixture.id}`);
+      if (storedResponse.ok) {
+        const detail = await storedResponse.json() as StoredMatch;
+        if (detail.players.length) {
+          setFeed(storedFeed(detail));
+          setFeedSource("historical");
+          return;
+        }
+      }
       const isPast = Date.parse(fixture.startsAt) < sessionNow;
       let mode: "historical" | "snapshot" = isPast ? "historical" : "snapshot";
       let response = await timedFetch(`/api/txline/scores/${fixture.id}${mode === "historical" ? "?mode=historical" : ""}`);

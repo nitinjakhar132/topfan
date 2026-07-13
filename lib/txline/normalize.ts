@@ -107,7 +107,12 @@ function actionName(value: UnknownRecord) {
 }
 
 function positionFrom(entry: UnknownRecord): LivePlayer["position"] {
-  const raw = text(first(entry, ["unitId", "UnitId", "unit", "positionId", "PositionId", "position"])).toLowerCase();
+  const positionId = numberValue(first(entry, ["positionId", "PositionId"]), -1);
+  if (positionId === 37) return "ATT";
+  if (positionId === 36) return "MID";
+  if (positionId === 35) return "DEF";
+  if (positionId === 34) return "GK";
+  const raw = text(first(entry, ["position", "Position", "unit", "Unit", "unitId", "UnitId"])).toLowerCase();
   if (/attack|forward|striker|winger|^4$/.test(raw)) return "ATT";
   if (/mid|^3$/.test(raw)) return "MID";
   if (/def|back|^2$/.test(raw)) return "DEF";

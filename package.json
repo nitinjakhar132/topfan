@@ -14,7 +14,9 @@
     "db:generate": "drizzle-kit generate",
     "txline:activate": "node scripts/txline-devnet.mjs activate",
     "txline:check": "node scripts/txline-devnet.mjs check",
-    "txline:historical": "node scripts/txline-devnet.mjs historical"
+    "txline:historical": "node scripts/txline-devnet.mjs historical",
+    "txline:sync": "node scripts/txline-devnet.mjs sync",
+    "txline:secret": "node scripts/txline-devnet.mjs secret"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
