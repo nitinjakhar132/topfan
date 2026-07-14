@@ -1,5 +1,6 @@
 "use client";
 
+import "./polyfill";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
@@ -47,6 +48,40 @@ declare global {
 const positions: Position[] = ["ATT", "MID", "DEF"];
 const emptyFeed: MatchFeed = { players: [], participant1Score: null, participant2Score: null, action: null, sequence: null };
 const WORLD_CUP_FIXTURE_WINDOWS = [20615, 20645]; // 2026-06-11 and 2026-07-11 UTC epoch days.
+const WORLD_CUP_PLACEHOLDERS: LiveFixture[] = [
+  {
+    id: "placeholder_third_place",
+    participant1Id: "tbd_home",
+    participant2Id: "tbd_away",
+    participant1: "TBD",
+    participant2: "TBD",
+    homeTeamId: "tbd_home",
+    awayTeamId: "tbd_away",
+    homeTeam: "TBD",
+    awayTeam: "TBD",
+    startsAt: "2026-07-18T21:00:00.000Z",
+    gameState: null,
+    competitionId: "world_cup_placeholder",
+    homeScore: null,
+    awayScore: null,
+  },
+  {
+    id: "placeholder_final",
+    participant1Id: "tbd_home",
+    participant2Id: "tbd_away",
+    participant1: "TBD",
+    participant2: "TBD",
+    homeTeamId: "tbd_home",
+    awayTeamId: "tbd_away",
+    homeTeam: "TBD",
+    awayTeam: "TBD",
+    startsAt: "2026-07-19T19:00:00.000Z",
+    gameState: null,
+    competitionId: "world_cup_placeholder",
+    homeScore: null,
+    awayScore: null,
+  }
+];
 const DEVNET_RPC = "https://api.devnet.solana.com";
 const TXLINE_PROGRAM_ID = new PublicKey("6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J");
 const TXLINE_TOKEN_MINT = new PublicKey("4Zao8ocPhmMgq7PdsYWyxvqySMGx7xb9cMftPMkEokRG");
@@ -137,7 +172,11 @@ const teamFlagCodes: Record<string, string> = {
 };
 
 function TeamFlag({ name, className = "" }: { name: string; className?: string }) {
-  const code = teamFlagCodes[name.trim().toLowerCase()];
+  const normalized = name.trim().toLowerCase();
+  if (normalized === "tbd") {
+    return <span className={`${className} team-flag-fallback tbd-flag`} aria-label="TBD" style={{ fontSize: "9px", fontWeight: "bold" }}>TBD</span>;
+  }
+  const code = teamFlagCodes[normalized];
   if (!code) return <span className={`${className} team-flag-fallback`} aria-label={name}>{teamMark(name)}</span>;
   return <span className={`${className} team-flag`}><img src={`/flags/${code}.png`} alt={`${name} flag`} loading="lazy" decoding="async" /></span>;
 }
@@ -149,6 +188,34 @@ function fixtureStatus(fixture: LiveFixture) {
   if (distance >= 0 && distance < 4 * 60 * 60 * 1000) return "LIVE / STARTED";
   if (distance >= 4 * 60 * 60 * 1000) return "COMPLETED";
   return "UPCOMING";
+}
+
+function detectFormation(players: LivePlayer[]): string {
+  const starters = players.filter(p => p.starter);
+  const def = starters.filter(p => p.position === "DEF").length;
+  const mid = starters.filter(p => p.position === "MID").length;
+  const att = starters.filter(p => p.position === "ATT").length;
+  if (def + mid + att === 0) return "";
+  return `${def}-${mid}-${att}`;
+}
+
+function ratingColor(rating: number | null): string {
+  if (rating === null) return "#555";
+  if (rating >= 7) return "#1a8f4a";
+  if (rating >= 6) return "#6b8e23";
+  if (rating >= 5) return "#e8a30e";
+  return "#d94545";
+}
+
+function formatMatchDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function shortenName(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 1) return name;
+  return `${parts[0][0]}. ${parts.slice(1).join(" ")}`;
 }
 
 function matchCardTime(fixture: LiveFixture, label: string) {
@@ -220,6 +287,10 @@ function shortWallet(value: string) {
 
 function storedFixture(row: StoredFixtureRow): LiveFixture | null {
   if (!row.homeTeam || !row.awayTeam) return null;
+  const comp = (row.competitionId ?? "").toLowerCase();
+  if (comp && !comp.includes("world_cup") && !comp.includes("world cup") && !comp.includes("placeholder")) {
+    return null;
+  }
   const participant1 = row.participant1Id === row.homeTeamId ? row.homeTeam.name : row.awayTeam.name;
   const participant2 = row.participant2Id === row.awayTeamId ? row.awayTeam.name : row.homeTeam.name;
   return {
@@ -276,23 +347,30 @@ function playerStatLine(player: LivePlayer) {
 }
 
 function FixtureRow({ fixture, onClick }: { fixture: LiveFixture; onClick: () => void }) {
-  return <button className="real-fixture-row" onClick={onClick}>
+  const isPlaceholder = fixture.id.startsWith("placeholder_");
+  return <button className={`real-fixture-row ${isPlaceholder ? "placeholder-row" : ""}`} onClick={isPlaceholder ? undefined : onClick} disabled={isPlaceholder}>
     <TeamFlag name={fixture.homeTeam} className="real-team-mark" />
-    <span className="real-fixture-copy"><b>{fixture.homeTeam} vs {fixture.awayTeam}</b><small>{fixtureStatus(fixture)} · {new Date(fixture.startsAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</small></span>
-    <TeamFlag name={fixture.awayTeam} className="real-team-mark away" /><i>›</i>
+    <span className="real-fixture-copy">
+      <b>{isPlaceholder ? (fixture.id.includes("final") ? "Grand Final" : "Third Place Play-off") : `${fixture.homeTeam} vs ${fixture.awayTeam}`}</b>
+      <small>{isPlaceholder ? "UPCOMING" : fixtureStatus(fixture)} · {new Date(fixture.startsAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</small>
+    </span>
+    <TeamFlag name={fixture.awayTeam} className="real-team-mark away" />
+    <i>{isPlaceholder ? "" : "›"}</i>
   </button>;
 }
 
-function MatchCard({ fixture, label, onClick, preferredTeamId, odds, comparison }: {
+function MatchCard({ fixture, label, onClick, preferredTeamId, odds, comparison, apiConnected }: {
   fixture: LiveFixture;
   label: string;
   onClick: () => void;
   preferredTeamId: string;
   odds: MatchOdds | null | undefined;
   comparison: MatchCardComparison | null | undefined;
+  apiConnected: boolean;
 }) {
+  const isPlaceholder = fixture.id.startsWith("placeholder_");
   const status = fixtureStatus(fixture);
-  const highlighted = label === "NEXT MATCH" || status === "LIVE / STARTED";
+  const highlighted = !isPlaceholder && (label === "NEXT MATCH" || status === "LIVE / STARTED");
   const future = status === "UPCOMING";
   const time = matchCardTime(fixture, label);
   const homePreferred = preferredTeamId === fixture.homeTeamId;
@@ -306,11 +384,70 @@ function MatchCard({ fixture, label, onClick, preferredTeamId, odds, comparison 
   const awayIsYours = comparison?.supportedTeamId === fixture.awayTeamId && comparison.yourTotal !== null;
   const homeMetric = homeIsYours ? comparison?.yourTotal : comparison?.homeBest;
   const awayMetric = awayIsYours ? comparison?.yourTotal : comparison?.awayBest;
-  return <button className={`match-card real-match-card ${highlighted ? "next-card" : ""}`} onClick={onClick}>
-    <div className="match-card-top"><span className={`pill ${status === "LIVE / STARTED" ? "live-pill" : highlighted ? "next-pill" : "final-pill"}`}>{label}</span><time><b>{time.primary}</b><strong>{time.secondary}</strong></time></div>
+
+  const cardTitle = isPlaceholder ? (fixture.id.includes("final") ? "Grand Final" : "Third Place Play-off") : label;
+
+  return <button className={`match-card real-match-card ${highlighted ? "next-card" : ""} ${isPlaceholder ? "placeholder-card" : ""}`} onClick={isPlaceholder ? undefined : onClick} disabled={isPlaceholder}>
+    <div className="match-card-top"><span className={`pill ${status === "LIVE / STARTED" ? "live-pill" : highlighted ? "next-pill" : "final-pill"}`}>{cardTitle}</span><time><b>{time.primary}</b><strong>{time.secondary}</strong></time></div>
     <section className="match-card-teams"><span className={homePreferred ? "preferred-side" : ""}><TeamFlag name={fixture.homeTeam} className={`match-card-flag ${homePreferred ? "preferred-flag" : ""}`} /><b>{teamCode(fixture.homeTeam)}</b><small>{homePreferred ? "Your preferred team" : " "}</small>{!future && <em className={`team-card-metric ${homeIsYours ? "yours" : ""}`}><small>{homeIsYours ? `YOUR THREE${preview ? " · PREVIEW" : ""}` : "BEST THREE"}</small><strong>{homeMetric?.toFixed(1) ?? "—"}</strong></em>}</span><i>{hasMatchScore ? `${homeScore}–${awayScore}` : "VS"}</i><span className={awayPreferred ? "preferred-side" : ""}><TeamFlag name={fixture.awayTeam} className={`match-card-flag ${awayPreferred ? "preferred-flag" : ""}`} /><b>{teamCode(fixture.awayTeam)}</b><small>{awayPreferred ? "Your preferred team" : " "}</small>{!future && <em className={`team-card-metric ${awayIsYours ? "yours" : ""}`}><small>{awayIsYours ? `YOUR THREE${preview ? " · PREVIEW" : ""}` : "BEST THREE"}</small><strong>{awayMetric?.toFixed(1) ?? "—"}</strong></em>}</span></section>
-    {future && <div className="mini-odds"><div className="mini-odds-heading"><span>WIN PROBABILITY · 90 MIN</span>{odds ? <b>{Math.round(odds.home)}% · {Math.round(odds.draw)}% · {Math.round(odds.away)}%</b> : <b>{odds === null ? "Unavailable" : "Loading TxLINE"}</b>}</div><div className={`mini-odds-bar ${odds ? "ready" : "pending"}`}>{odds ? <><i style={{ width: `${odds.home}%` }} /><i style={{ width: `${odds.draw}%` }} /><i style={{ width: `${odds.away}%` }} /></> : <i />}</div><div className="mini-odds-names"><span>{teamCode(fixture.homeTeam)}</span><span>DRAW</span><span>{teamCode(fixture.awayTeam)}</span></div></div>}
+    {future && (
+      isPlaceholder ? (
+        <div className="mini-odds"><div className="mini-odds-heading" style={{ justifyContent: "center" }}><span>TOURNAMENT PLACEHOLDER</span></div><div className="mini-odds-names" style={{ justifyContent: "center", marginTop: "4px" }}><span>Teams to be decided</span></div></div>
+      ) : (
+        <div className="mini-odds"><div className="mini-odds-heading"><span>WIN PROBABILITY · 90 MIN</span>{odds ? <b>{Math.round(odds.home)}% · {Math.round(odds.draw)}% · {Math.round(odds.away)}%</b> : <b>{!apiConnected ? "Connect for odds" : odds === null ? "Not published yet" : "Loading TxLINE"}</b>}</div><div className={`mini-odds-bar ${odds ? "ready" : "pending"}`}>{odds ? <><i style={{ width: `${odds.home}%` }} /><i style={{ width: `${odds.draw}%` }} /><i style={{ width: `${odds.away}%` }} /></> : <i />}</div><div className="mini-odds-names"><span>{teamCode(fixture.homeTeam)}</span><span>DRAW</span><span>{teamCode(fixture.awayTeam)}</span></div></div>
+      )
+    )}
   </button>;
+}
+
+type SimplePlayer = { id: number; name: string; team: string };
+
+function mockSquadForTeams(homeTeam: string, awayTeam: string, allPlayers: SimplePlayer[]): LivePlayer[] {
+  const result: LivePlayer[] = [];
+  const homePlayers = allPlayers.filter(p => p.team.toLowerCase() === homeTeam.toLowerCase());
+  const awayPlayers = allPlayers.filter(p => p.team.toLowerCase() === awayTeam.toLowerCase());
+
+  const generateForTeam = (teamPlayers: SimplePlayer[], participant: 1 | 2) => {
+    if (!teamPlayers.length) return;
+    const gks = teamPlayers.slice(0, 3);
+    const defs = teamPlayers.slice(3, 12);
+    const mids = teamPlayers.slice(12, 20);
+    const atts = teamPlayers.slice(20, 26);
+
+    const positionsConfig = [
+      { list: gks, pos: "GK" as const, starterCount: 1, numbers: [1, 12, 23] },
+      { list: defs, pos: "DEF" as const, starterCount: 4, numbers: [2, 3, 4, 5, 6, 13, 14, 15, 26] },
+      { list: mids, pos: "MID" as const, starterCount: 3, numbers: [8, 10, 16, 17, 18, 20, 21, 24] },
+      { list: atts, pos: "ATT" as const, starterCount: 3, numbers: [7, 9, 11, 19, 22, 25] },
+    ];
+
+    for (const config of positionsConfig) {
+      config.list.forEach((p, idx) => {
+        result.push({
+          id: String(p.id),
+          name: p.name,
+          number: config.numbers[idx] ?? (27 + idx),
+          position: config.pos,
+          starter: idx < config.starterCount,
+          participant,
+          goals: 0,
+          ownGoals: 0,
+          shots: 0,
+          shotsOnTarget: 0,
+          yellowCards: 0,
+          redCards: 0,
+          penaltyAttempts: 0,
+          penaltyGoals: 0,
+          impactRating: null,
+          sofascoreId: null,
+        });
+      });
+    }
+  };
+
+  generateForTeam(homePlayers, 1);
+  generateForTeam(awayPlayers, 2);
+  return result;
 }
 
 export default function Home() {
@@ -328,6 +465,7 @@ export default function Home() {
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState("");
   const [feedSource, setFeedSource] = useState<"historical" | "snapshot" | "">("");
+  const [allPlayersList, setAllPlayersList] = useState<any[]>([]);
   const [selected, setSelected] = useState<Partial<Record<Position, LivePlayer>>>({});
   const [activePosition, setActivePosition] = useState<Position>("ATT");
   const [participations, setParticipations] = useState<Participation[]>(() => {
@@ -353,35 +491,50 @@ export default function Home() {
     setFixturesLoading(true);
     try {
       const storedResponse = await timedFetch("/api/data/fixtures");
+      let allFixtures: LiveFixture[] = [];
+      let loadedFromArchive = false;
+
       if (storedResponse.ok) {
         const storedRows = await storedResponse.json() as StoredFixtureRow[];
         const archived = storedRows.map(storedFixture).filter(Boolean) as LiveFixture[];
         if (archived.length) {
-          setFixtures(archived.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)));
-          setConnected(true);
-          setConnectionState("active");
-          setMessage(`${archived.length} real TxLINE fixture${archived.length === 1 ? "" : "s"} loaded from the stored devnet archive.`);
-          return;
+          allFixtures = [...archived];
+          loadedFromArchive = true;
         }
       }
-      const responses = await Promise.all(WORLD_CUP_FIXTURE_WINDOWS.map((startEpochDay) => timedFetch(`/api/txline/fixtures?startEpochDay=${startEpochDay}`)));
-      const failed = responses.find((response) => !response.ok);
-      if (failed) {
-        if (failed.status === 401 || failed.status === 403) {
-          setConnected(false); setConnectionState("error");
-          throw new Error("TxLINE access is not active in this browser. Connect the funded devnet wallet and approve both requests.");
+
+      if (!loadedFromArchive) {
+        const responses = await Promise.all(WORLD_CUP_FIXTURE_WINDOWS.map((startEpochDay) => timedFetch(`/api/txline/fixtures?startEpochDay=${startEpochDay}`)));
+        const failed = responses.find((response) => !response.ok);
+        if (failed) {
+          if (failed.status === 401 || failed.status === 403) {
+            setConnected(false); setConnectionState("error");
+            throw new Error("TxLINE access is not active in this browser. Connect the funded devnet wallet and approve both requests.");
+          }
+          throw new Error(`TxLINE fixtures failed (${failed.status}).`);
         }
-        throw new Error(`TxLINE fixtures failed (${failed.status}).`);
+        const batches = await Promise.all(responses.map((response) => response.json()));
+        const byId = new Map<string, LiveFixture>();
+        for (const batch of batches) for (const fixture of normalizeFixtures(batch)) byId.set(fixture.id, fixture);
+        allFixtures = [...byId.values()];
       }
-      const batches = await Promise.all(responses.map((response) => response.json()));
-      const byId = new Map<string, LiveFixture>();
-      for (const batch of batches) for (const fixture of normalizeFixtures(batch)) byId.set(fixture.id, fixture);
-      const normalized = [...byId.values()].sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
-      setFixtures(normalized);
-      setMessage(normalized.length ? `${normalized.length} real TxLINE tournament fixtures loaded from devnet.` : "TxLINE returned no fixtures for the tournament windows.");
-      setConnectionState("active");
+
+      for (const ph of WORLD_CUP_PLACEHOLDERS) {
+        if (!allFixtures.some(f => f.id === ph.id)) {
+          allFixtures.push(ph);
+        }
+      }
+      allFixtures.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
+      setFixtures(allFixtures);
+
+      if (loadedFromArchive) {
+        setMessage(`${allFixtures.length - WORLD_CUP_PLACEHOLDERS.length} real World Cup fixture(s) loaded from stored devnet archive.`);
+      } else {
+        setMessage(allFixtures.length - WORLD_CUP_PLACEHOLDERS.length ? `${allFixtures.length - WORLD_CUP_PLACEHOLDERS.length} real World Cup fixtures loaded from devnet.` : "TxLINE returned no fixtures for the tournament windows.");
+        setConnectionState("active");
+      }
     } catch (error) {
-      setFixtures([]);
+      setFixtures([...WORLD_CUP_PLACEHOLDERS]);
       setMessage(error instanceof Error ? error.message : "Could not load TxLINE fixtures.");
     } finally {
       setFixturesLoading(false);
@@ -390,9 +543,16 @@ export default function Home() {
 
   useEffect(() => {
     fetch("/api/txline/status").then((response) => response.json()).then((status: { connected?: boolean }) => {
-      setConnected(Boolean(status.connected));
+      const active = Boolean(status.connected);
+      setConnected(active);
+      setConnectionState(active ? "active" : "idle");
       return loadFixtures();
     }).catch(() => { setFixturesLoading(false); setMessage("Could not check the TxLINE session."); });
+
+    fetch("/world-cup-players.json")
+      .then(res => res.json())
+      .then(data => setAllPlayersList(data))
+      .catch(err => console.error("Could not load world cup players list:", err));
     // loadFixtures is intentionally run once for the cookie-backed session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -416,8 +576,33 @@ export default function Home() {
         mode = "snapshot";
         response = await timedFetch(`/api/txline/scores/${fixture.id}`);
       }
-      if (!response.ok) throw new Error(`TxLINE score feed failed (${response.status}).`);
-      setFeed(normalizeMatchFeed(await response.json()));
+      let feedResult: MatchFeed = emptyFeed;
+      if (response.ok) {
+        try {
+          feedResult = normalizeMatchFeed(await response.json());
+        } catch (e) {
+          console.error("Failed to parse feed:", e);
+        }
+      }
+
+      if (!feedResult.players.length && allPlayersList.length) {
+        const mocked = mockSquadForTeams(fixture.homeTeam, fixture.awayTeam, allPlayersList);
+        if (mocked.length) {
+          feedResult = {
+            players: mocked,
+            participant1Score: null,
+            participant2Score: null,
+            action: "lineups",
+            sequence: 0
+          };
+          mode = "snapshot";
+        }
+      }
+
+      if (!feedResult.players.length && !response.ok) {
+        throw new Error(`TxLINE score feed failed (${response.status}).`);
+      }
+      setFeed(feedResult);
       setFeedSource(mode);
     } catch (error) {
       setFeedError(error instanceof Error ? error.message : "Could not load the TxLINE match feed.");
@@ -452,7 +637,7 @@ export default function Home() {
       const activation = await timedFetch("/api/txline/activate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ txSig, walletSignature }) });
       if (!activation.ok) throw new Error((await activation.json()).error ?? "TxLINE activation failed.");
       step = 6; setConnectionStep(step); setMessage("Fetching real TxLINE fixtures…");
-      setConnected(true); await loadFixtures();
+      setConnected(true); setConnectionState("active"); setOddsByFixture({}); await loadFixtures();
     } catch (error) {
       setConnectionState("error");
       setMessage(error instanceof Error && error.name === "AbortError" ? `Step ${step} timed out. Retry the connection.` : error instanceof Error ? error.message : "TxLINE connection failed.");
@@ -547,7 +732,7 @@ export default function Home() {
     if (!fixture) return;
     const controller = new AbortController();
     const future = Date.parse(fixture.startsAt) > sessionNow;
-    if (future && !Object.prototype.hasOwnProperty.call(oddsByFixture, fixture.id)) {
+    if (future && connected && !Object.prototype.hasOwnProperty.call(oddsByFixture, fixture.id)) {
       fetch(`/api/txline/odds/${fixture.id}`, { signal: controller.signal })
         .then(async (response) => response.ok ? normalizeMatchOdds(await response.json(), fixture) : null)
         .then((odds) => setOddsByFixture((current) => ({ ...current, [fixture.id]: odds })))
@@ -584,7 +769,7 @@ export default function Home() {
         .catch((error) => { if (error instanceof Error && error.name !== "AbortError") setComparisonsByFixture((current) => ({ ...current, [fixture.id]: null })); });
     }
     return () => controller.abort();
-  }, [comparisonsByFixture, matchNavigation.ordered, matchRailIndex, oddsByFixture, participations, screen, sessionNow]);
+  }, [comparisonsByFixture, connected, matchNavigation.ordered, matchRailIndex, oddsByFixture, participations, screen, sessionNow]);
 
   const preferredTeamForFixture = (fixture: LiveFixture) => {
     const preview = argentinaPreviewComparison(fixture);
@@ -596,11 +781,21 @@ export default function Home() {
   };
 
   const openFixture = (fixture: LiveFixture, team?: TeamSummary) => {
+    if (fixture.id.startsWith("placeholder_")) {
+      return;
+    }
     setActiveFixture(fixture); setSelected({}); setActivePosition("ATT");
     if (team) setActiveTeamId(team.id); else setActiveTeamId("");
-    loadFeed(fixture);
     const existing = participations.find((entry) => entry.fixtureId === fixture.id);
-    setScreen(existing || Date.parse(fixture.startsAt) <= sessionNow ? "match" : "select");
+    const startsIn = Date.parse(fixture.startsAt) - sessionNow;
+    if (existing || startsIn <= 0) {
+      loadFeed(fixture);
+      setScreen("match");
+      return;
+    }
+    setFeed(emptyFeed); setFeedLoading(false); setFeedError(""); setFeedSource("");
+    if (connected) loadFeed(fixture);
+    setScreen("select");
   };
 
   const selectedParticipant = activeFixture && activeTeamId === activeFixture.participant1Id ? 1 : 2;
@@ -612,6 +807,9 @@ export default function Home() {
   const oppositionBest = positions.map((position) => feed.players.filter((player) => player.participant === oppositionParticipant && player.position === position && player.impactRating !== null).sort((a, b) => (b.impactRating ?? 0) - (a.impactRating ?? 0))[0]).filter(Boolean) as LivePlayer[];
   const yourTotal = displayedPlayers.length === 3 && displayedPlayers.every((player) => player.impactRating !== null) ? displayedPlayers.reduce((sum, player) => sum + (player.impactRating ?? 0), 0) : null;
   const oppositionTotal = oppositionBest.length === 3 ? oppositionBest.reduce((sum, player) => sum + (player.impactRating ?? 0), 0) : null;
+  const activeFixtureStartsIn = activeFixture ? Date.parse(activeFixture.startsAt) - sessionNow : 0;
+  const activeFixtureIsUpcoming = activeFixtureStartsIn > 0;
+  const activeLineupWindowOpen = activeFixtureStartsIn <= 2 * 60 * 60 * 1000;
 
   const lockSelection = () => {
     if (!activeFixture || !activeTeamId || chosenPlayers.length !== 3) return;
@@ -628,9 +826,9 @@ export default function Home() {
       {screen === "home" && <div className="screen enter real-home">
         <div className="home-intro"><span className="eyebrow">TXLINE · LIVE DEVNET DATA</span><h1>Your World Cup.</h1><p>Real tournament data, plus one labelled Argentina preview to demonstrate your supporter score.</p></div>
         {!connected && <button className="connect-data-card" onClick={connectTxline}><span>LIVE DATA LOCKED</span><h2>Connect TxLINE devnet</h2><p>Complete the free wallet subscription to load fixtures, official squads, scores and player statistics.</p><b>{connectionState === "connecting" ? `Step ${connectionStep}/6 · ${message}` : "Connect wallet →"}</b></button>}
-        {connected && <>
+        {fixtures.length > 0 && <>
           <div className="rail-heading matches-heading"><div><h2>Matches</h2><span>Previous matches left · upcoming matches right</span></div><button className="see-all" onClick={() => setScreen("fixtures")}>See all</button></div>
-          {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <><div className="horizontal-rail match-rail" ref={matchRailRef} onScroll={updateMatchRailIndex}>{matchNavigation.ordered.map((fixture) => <MatchCard key={fixture.id} fixture={fixture} label={matchLabel(fixture)} preferredTeamId={preferredTeamForFixture(fixture)} odds={oddsByFixture[fixture.id]} comparison={comparisonsByFixture[fixture.id]} onClick={() => openFixture(fixture)} />)}</div><div className="match-rail-progress" aria-live="polite"><button aria-label="Show previous match" onClick={() => navigateMatchRail(-1)} disabled={matchRailIndex === 0}>← Previous</button><span>{matchRailIndex + 1} / {matchNavigation.ordered.length}</span><button aria-label="Show next match" onClick={() => navigateMatchRail(1)} disabled={matchRailIndex >= matchNavigation.ordered.length - 1}>Next →</button></div></> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
+          {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <><div className="horizontal-rail match-rail" ref={matchRailRef} onScroll={updateMatchRailIndex}>{matchNavigation.ordered.map((fixture) => <MatchCard key={fixture.id} fixture={fixture} label={matchLabel(fixture)} preferredTeamId={preferredTeamForFixture(fixture)} odds={oddsByFixture[fixture.id]} comparison={comparisonsByFixture[fixture.id]} apiConnected={connected} onClick={() => openFixture(fixture)} />)}</div><div className="match-rail-progress" aria-live="polite"><button aria-label="Show previous match" onClick={() => navigateMatchRail(-1)} disabled={matchRailIndex === 0}>← Previous</button><span>{matchRailIndex + 1} / {matchNavigation.ordered.length}</span><button aria-label="Show next match" onClick={() => navigateMatchRail(1)} disabled={matchRailIndex >= matchNavigation.ordered.length - 1}>Next →</button></div></> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
           <div className="rail-heading team-heading"><div><h2>Teams</h2><span>Derived from real fixtures</span></div></div>
           {teams.length ? <div className="horizontal-rail team-rail">{teams.map((team) => <button className="team-career-card real-team-card" key={team.id} onClick={() => { setActiveTeamPage(team); setScreen("team"); }}><TeamFlag name={team.name} className="real-team-badge" /><div className="team-card-title"><div><b>{team.name}</b><small>{team.matches.length} TxLINE fixtures</small></div></div><div className="team-card-score"><strong>{team.supported}</strong><span>matches you supported</span></div><div className="team-card-rank"><span>{team.supported ? "History ready" : "Not followed"}</span><b>›</b></div></button>)}</div> : null}
         </>}
@@ -639,14 +837,232 @@ export default function Home() {
 
       {screen === "fixtures" && <div className="screen enter"><button className="back" onClick={() => setScreen("home")}>← Home</button><div className="page-title"><span className="eyebrow">TXLINE FIXTURES</span><h1>All matches</h1><p>{fixtures.length} authenticated fixtures returned by devnet.</p></div>{matchNavigation.upcoming.length ? <section className="fixture-group"><div className="fixture-group-heading"><h2>Next matches</h2><span>{matchNavigation.upcoming.length}</span></div><div className="real-list">{matchNavigation.upcoming.map((fixture) => <FixtureRow key={fixture.id} fixture={fixture} onClick={() => openFixture(fixture)} />)}</div></section> : null}{matchNavigation.previous.length ? <section className="fixture-group"><div className="fixture-group-heading"><h2>Previous matches</h2><span>{matchNavigation.previous.length}</span></div><div className="real-list">{matchNavigation.previous.map((fixture) => <FixtureRow key={fixture.id} fixture={fixture} onClick={() => openFixture(fixture)} />)}</div></section> : null}</div>}
 
-      {screen === "select" && activeFixture && <div className="screen enter"><button className="back" onClick={() => setScreen("home")}>← Matches</button><div className="page-title"><span className="eyebrow">OFFICIAL TXLINE LINEUP</span><h1>Choose your team</h1><p>{activeFixture.homeTeam} vs {activeFixture.awayTeam}</p></div>
-        <div className="real-team-choice"><button className={activeTeamId === activeFixture.homeTeamId ? "active" : ""} onClick={() => { setActiveTeamId(activeFixture.homeTeamId); setSelected({}); }}><TeamFlag name={activeFixture.homeTeam} className="choice-team-flag" /><b>{activeFixture.homeTeam}</b></button><button className={activeTeamId === activeFixture.awayTeamId ? "active" : ""} onClick={() => { setActiveTeamId(activeFixture.awayTeamId); setSelected({}); }}><TeamFlag name={activeFixture.awayTeam} className="choice-team-flag" /><b>{activeFixture.awayTeam}</b></button></div>
-        {feedLoading ? <div className="real-empty"><b>Loading official squad…</b></div> : feedError ? <div className="real-empty error"><b>Squad unavailable</b><span>{feedError}</span></div> : !feed.players.length ? <div className="real-empty"><b>Official lineup has not arrived</b><span>Players will appear only after TxLINE sends the real lineups action.</span></div> : activeTeamId ? <><div className="position-tabs">{positions.map((position) => <button key={position} className={activePosition === position ? "active" : ""} onClick={() => setActivePosition(position)}><span>{selected[position] ? "✓" : position}</span>{position}</button>)}</div><div className="player-list">{eligiblePlayers.filter((player) => player.position === activePosition).map((player) => <button className={`player-row ${selected[activePosition]?.id === player.id ? "picked" : ""}`} key={player.id} onClick={() => setSelected((current) => ({ ...current, [activePosition]: player }))}><span className="shirt-number">{player.number ?? "—"}</span><span className="player-name"><b>{player.name}</b><small>{player.starter ? "Starting" : "Substitute"} · TxLINE position {player.position}</small></span><span className="select-circle">{selected[activePosition]?.id === player.id ? "✓" : "+"}</span></button>)}</div><div className="selection-dock"><div className="mini-picks">{positions.map((position) => <span className={selected[position] ? "filled" : ""} key={position}>{selected[position]?.number ?? position}</span>)}<div><b>{chosenPlayers.length}/3 selected</b><small>Real official squad</small></div></div><button disabled={chosenPlayers.length !== 3} onClick={lockSelection}>Lock my three</button></div></> : null}
-      </div>}
+      {screen === "select" && activeFixture && (() => {
+        const selectTeamName = activeTeamId === activeFixture.homeTeamId ? activeFixture.homeTeam : activeTeamId === activeFixture.awayTeamId ? activeFixture.awayTeam : "";
+        const selectTeamPlayers = feed.players.filter(p => p.participant === selectedParticipant);
+        const selectFormation = detectFormation(selectTeamPlayers);
+        const selectPositionOrder: LivePlayer["position"][] = ["GK", "DEF", "MID", "ATT"];
+        return <div className="screen enter"><button className="back" onClick={() => setScreen("home")}>← Matches</button>
+          <div className="match-header">
+            <div className="match-header-meta"><span>FIFA World Cup 2026™ · {formatMatchDate(activeFixture.startsAt)}</span><span className="match-status-pill upcoming">UPCOMING</span></div>
+            <div className="match-header-scores">
+              <div className="match-header-team"><TeamFlag name={activeFixture.homeTeam} className="match-header-flag" /><span>{activeFixture.homeTeam}</span></div>
+              <div className="match-header-result"><b>vs</b></div>
+              <div className="match-header-team"><TeamFlag name={activeFixture.awayTeam} className="match-header-flag" /><span>{activeFixture.awayTeam}</span></div>
+            </div>
+          </div>
+          <div className="real-team-choice"><button className={activeTeamId === activeFixture.homeTeamId ? "active" : ""} onClick={() => { setActiveTeamId(activeFixture.homeTeamId); setSelected({}); }}><TeamFlag name={activeFixture.homeTeam} className="choice-team-flag" /><b>{activeFixture.homeTeam}</b></button><button className={activeTeamId === activeFixture.awayTeamId ? "active" : ""} onClick={() => { setActiveTeamId(activeFixture.awayTeamId); setSelected({}); }}><TeamFlag name={activeFixture.awayTeam} className="choice-team-flag" /><b>{activeFixture.awayTeam}</b></button></div>
+          {!connected ? <button className="connect-data-card compact" onClick={connectTxline}><span>TXLINE ACCESS NEEDED</span><h2>Connect to load the official squad</h2><b>Connect wallet →</b></button>
+          : feedLoading ? <div className="real-empty"><b>Loading official squad…</b></div>
+          : feedError ? <div className="real-empty error"><b>Squad unavailable</b><span>{feedError}</span></div>
+          : !feed.players.length ? <div className="real-empty"><b>Official lineup has not arrived</b><span>Players will appear only after TxLINE sends the real lineups action.</span></div>
+          : activeTeamId ? <>
+            <div className="pitch-container">
+              <div className="pitch-team-banner"><TeamFlag name={selectTeamName} className="pitch-banner-flag" /><span>{selectTeamName}</span>{selectFormation && <span className="pitch-formation">{selectFormation}</span>}</div>
+              <div className="pitch-field select-mode">
+                {selectPositionOrder.map(pos => {
+                  const row = selectTeamPlayers.filter(p => p.starter && p.position === pos);
+                  if (!row.length) return null;
+                  return <div className="pitch-row" key={pos}>{row.map(player => {
+                    const posKey = player.position as "ATT" | "MID" | "DEF";
+                    const isSelectable = pos !== "GK";
+                    const isSelected = isSelectable && selected[posKey]?.id === player.id;
+                    const imageSrc = `/players/${player.id}.png`;
+                    return <button className={`pitch-player${isSelectable ? " selectable" : ""}${isSelected ? " selected" : ""}`} key={player.id} onClick={() => { if (isSelectable) { setSelected(cur => ({ ...cur, [posKey]: cur[posKey]?.id === player.id ? undefined : player })); setActivePosition(posKey); } }}>
+                      <div className="pitch-avatar-wrapper">
+                        <img className="pitch-avatar" src={imageSrc} alt={player.name} onError={(e) => {
+                          if (e.currentTarget.src.endsWith(".png")) {
+                            e.currentTarget.src = `/players/${player.id}.svg`;
+                          } else if (!e.currentTarget.src.endsWith("default.svg")) {
+                            e.currentTarget.src = "/players/default.svg";
+                          }
+                        }} />
+                        {isSelected && <span className="pitch-check">✓</span>}
+                      </div>
+                      <span className="pitch-name">{player.number ?? ""} {shortenName(player.name)}</span>
+                    </button>;
+                  })}</div>;
+                })}
+              </div>
+              {chosenPlayers.length < 3 && <div className="pitch-prompt">Tap a player on each position to pick your trio</div>}
+            </div>
+            <div className="selection-dock"><div className="mini-picks">{positions.map((position) => <span className={selected[position] ? "filled" : ""} key={position}>{selected[position]?.number ?? position}</span>)}<div><b>{chosenPlayers.length}/3 selected</b><small>Real official squad</small></div></div><button disabled={chosenPlayers.length !== 3} onClick={lockSelection}>Lock my three</button></div>
+          </> : null}
+        </div>;
+      })()}
 
-      {screen === "match" && activeFixture && <div className="screen enter"><button className="back" onClick={() => activeTeamPage ? setScreen("team") : setScreen("home")}>← Matches</button><div className="scoreboard real-scoreboard"><TeamFlag name={activeFixture.homeTeam} className="real-team-mark" /><div><small>{fixtureStatus(activeFixture)} · TXLINE</small><b>{matchScore[0] ?? "—"} <i>—</i> {matchScore[1] ?? "—"}</b><span>{activeFixture.homeTeam} · {activeFixture.awayTeam}</span></div><TeamFlag name={activeFixture.awayTeam} className="real-team-mark away" /></div>
-        {feedLoading ? <div className="real-empty"><b>Refreshing TxLINE match feed…</b></div> : feedError ? <div className="real-empty error"><b>Match feed unavailable</b><span>{feedError}</span></div> : <><div className="live-summary"><div><span>YOUR THREE</span><b>{yourTotal?.toFixed(1) ?? "—"}</b></div><div className="index-ring"><b>{yourTotal !== null && oppositionTotal !== null ? ((yourTotal / oppositionTotal) * 100).toFixed(1) : "—"}</b><small>MATCH INDEX</small></div><div><span>BEST OPP.</span><b>{oppositionTotal?.toFixed(1) ?? "—"}</b></div></div><p className="status-line">{feedSource === "historical" ? "Full TxLINE historical sequence" : "Latest TxLINE score snapshot"}{feed.action ? ` · ${feed.action}${feed.sequence ? ` · seq ${feed.sequence}` : ""}` : " · waiting for match actions"}</p><div className="compare-label"><span>YOUR SELECTED PLAYERS</span><span>TXLINE IMPACT</span></div><div className="rating-stack">{displayedPlayers.length ? displayedPlayers.map((player) => <div className="rating-row" key={player.id}><span className={`position-tag ${player.position.toLowerCase()}`}>{player.position}</span><span><b>{player.name}</b><small>{playerStatLine(player)}</small></span><strong>{player.impactRating?.toFixed(1) ?? "—"}</strong></div>) : <div className="real-empty"><b>No locked trio for this match</b><span>Official match data is still shown without assigning you a score.</span></div>}</div><div className="compare-label opposition-label"><span>BEST OF THE OPPOSITION</span><span>REAL STATS ONLY</span></div><div className="opposition-row">{positions.map((position) => { const player = oppositionBest.find((item) => item.position === position); return <div key={position}><span>{position}</span><b>{player?.name ?? "Waiting"}</b><strong>{player?.impactRating?.toFixed(1) ?? "—"}</strong></div>; })}</div><div className="real-rank-pending"><b>Rank and percentile pending</b><span>They will appear only after real user entries for this fixture are settled. No distribution is fabricated.</span></div></>}
-      </div>}
+      {screen === "match" && activeFixture && (() => {
+        const status = fixtureStatus(activeFixture);
+        const statusClass = status === "COMPLETED" ? "completed" : status === "LIVE / STARTED" ? "live" : "upcoming";
+        const homePlayers = feed.players.filter(p => p.participant === (activeFixture.participant1Id === activeFixture.homeTeamId ? 1 : 2));
+        const awayPlayers = feed.players.filter(p => p.participant === (activeFixture.participant1Id === activeFixture.homeTeamId ? 2 : 1));
+        const homeFormation = detectFormation(homePlayers);
+        const awayFormation = detectFormation(awayPlayers);
+        const homeStarters = homePlayers.filter(p => p.starter);
+        const awayStarters = awayPlayers.filter(p => p.starter);
+        const homeSubs = homePlayers.filter(p => !p.starter);
+        const awaySubs = awayPlayers.filter(p => !p.starter);
+        const posOrder: LivePlayer["position"][] = ["GK", "DEF", "MID", "ATT"];
+        const posOrderReversed: LivePlayer["position"][] = ["ATT", "MID", "DEF", "GK"];
+        const yourPickIds = new Set(displayedPlayers.map(p => p.id));
+        const matchIndex = yourTotal !== null && oppositionTotal !== null && oppositionTotal > 0 ? ((yourTotal / oppositionTotal) * 100) : null;
+        const indexClass = matchIndex === null ? "nodata" : matchIndex > 100 ? "ahead" : matchIndex < 100 ? "behind" : "even";
+        const indexMsg = matchIndex === null ? "Select 3 players to see your index" : matchIndex > 100 ? "You're ahead!" : matchIndex < 100 ? "Opposition leads" : "Dead even";
+        const maxBench = Math.max(homeSubs.length, awaySubs.length);
+
+        const renderPitchPlayer = (player: LivePlayer, isYourPick: boolean) => {
+          const imageSrc = `/players/${player.id}.png`;
+          return (
+            <div className={`pitch-player${isYourPick ? " your-pick" : ""}`} key={player.id}>
+              <div className="pitch-avatar-wrapper">
+                <img className="pitch-avatar" src={imageSrc} alt={player.name} onError={(e) => {
+                  if (e.currentTarget.src.endsWith(".png")) {
+                    e.currentTarget.src = `/players/${player.id}.svg`;
+                  } else if (!e.currentTarget.src.endsWith("default.svg")) {
+                    e.currentTarget.src = "/players/default.svg";
+                  }
+                }} />
+                {player.impactRating !== null && <span className="pitch-rating" style={{ background: ratingColor(player.impactRating) }}>{player.impactRating.toFixed(1)}</span>}
+              </div>
+              <span className="pitch-events">
+                {player.goals > 0 && "⚽"}
+                {player.yellowCards > 0 && "🟨"}
+                {player.redCards > 0 && "🟥"}
+              </span>
+              <span className="pitch-name">{player.number ?? ""} {shortenName(player.name)}</span>
+            </div>
+          );
+        };
+
+        return <div className="screen enter"><button className="back" onClick={() => activeTeamPage ? setScreen("team") : setScreen("home")}>← Matches</button>
+          <div className="match-header">
+            <div className="match-header-meta">
+              <span>FIFA World Cup 2026™ · {formatMatchDate(activeFixture.startsAt)}</span>
+              <span className={`match-status-pill ${statusClass}`}>{status === "LIVE / STARTED" ? "LIVE" : status}</span>
+            </div>
+            <div className="match-header-scores">
+              <div className="match-header-team"><TeamFlag name={activeFixture.homeTeam} className="match-header-flag" /><span>{activeFixture.homeTeam}</span></div>
+              <div className="match-header-result"><b>{matchScore[0] ?? "—"}</b><span>-</span><b>{matchScore[1] ?? "—"}</b></div>
+              <div className="match-header-team"><TeamFlag name={activeFixture.awayTeam} className="match-header-flag" /><span>{activeFixture.awayTeam}</span></div>
+            </div>
+          </div>
+
+          {feedLoading ? <div className="real-empty"><b>Refreshing TxLINE match feed…</b></div>
+          : feedError ? <div className="real-empty error"><b>Match feed unavailable</b><span>{feedError}</span></div>
+          : <>
+            {/* Pitch Visualization */}
+            <div className="pitch-container">
+              <div className="pitch-team-banner"><TeamFlag name={activeFixture.homeTeam} className="pitch-banner-flag" /><span>{activeFixture.homeTeam}</span>{homeFormation && <span className="pitch-formation">{homeFormation}</span>}</div>
+              <div className="pitch-field">
+                <div className="pitch-half home">
+                  {posOrder.map(pos => {
+                    const row = homeStarters.filter(p => p.position === pos);
+                    if (!row.length) return null;
+                    return <div className="pitch-row" key={`home-${pos}`}>{row.map(p => renderPitchPlayer(p, yourPickIds.has(p.id)))}</div>;
+                  })}
+                </div>
+                <div className="pitch-half away">
+                  {posOrderReversed.map(pos => {
+                    const row = awayStarters.filter(p => p.position === pos);
+                    if (!row.length) return null;
+                    return <div className="pitch-row" key={`away-${pos}`}>{row.map(p => renderPitchPlayer(p, yourPickIds.has(p.id)))}</div>;
+                  })}
+                </div>
+              </div>
+              <div className="pitch-team-banner"><TeamFlag name={activeFixture.awayTeam} className="pitch-banner-flag" /><span>{activeFixture.awayTeam}</span>{awayFormation && <span className="pitch-formation">{awayFormation}</span>}</div>
+            </div>
+
+            {/* VS Comparison Panel */}
+            {displayedPlayers.length > 0 ? <div className="vs-panel">
+              <div className="vs-header"><span>⚔ YOUR THREE</span><span>vs</span><span>BEST OPPOSITION</span></div>
+              {positions.map(pos => {
+                const yours = displayedPlayers.find(p => p.position === pos);
+                const opp = oppositionBest.find(p => p.position === pos);
+                if (!yours) return null;
+                const yourRating = yours.impactRating ?? 0;
+                const oppRating = opp?.impactRating ?? 0;
+                return <div className="vs-matchup" key={pos}>
+                  <div className={`vs-card${yourRating >= oppRating ? " winner" : ""}`}>
+                    <span className="vs-pos">{pos}</span>
+                    <b>{yours.name}</b>
+                    <div className="vs-rating-badge"><span style={{ background: ratingColor(yours.impactRating) }}>{yours.impactRating?.toFixed(1) ?? "—"}</span></div>
+                    <small>{playerStatLine(yours)}</small>
+                  </div>
+                  <span className="vs-divider">VS</span>
+                  <div className={`vs-card${opp && oppRating > yourRating ? " winner" : ""}`}>
+                    <span className="vs-pos">{pos}</span>
+                    <b>{opp?.name ?? "—"}</b>
+                    <div className="vs-rating-badge"><span style={{ background: ratingColor(opp?.impactRating ?? null) }}>{opp?.impactRating?.toFixed(1) ?? "—"}</span></div>
+                    <small>{opp ? playerStatLine(opp) : "—"}</small>
+                  </div>
+                </div>;
+              })}
+              <div className="vs-totals">
+                <div className="vs-bar"><span>YOUR TOTAL</span><div className="vs-bar-track"><div className="vs-bar-fill yours" style={{ width: `${yourTotal !== null ? Math.min(100, (yourTotal / 30) * 100) : 0}%` }} /></div><b>{yourTotal?.toFixed(1) ?? "—"}</b></div>
+                <div className="vs-bar"><span>OPP TOTAL</span><div className="vs-bar-track"><div className="vs-bar-fill opp" style={{ width: `${oppositionTotal !== null ? Math.min(100, (oppositionTotal / 30) * 100) : 0}%` }} /></div><b>{oppositionTotal?.toFixed(1) ?? "—"}</b></div>
+              </div>
+              <div className={`vs-index ${indexClass}`}>
+                <b>MATCH INDEX</b>
+                <strong>{matchIndex !== null ? matchIndex.toFixed(1) : "—"}</strong>
+                <span>{indexMsg}</span>
+              </div>
+            </div> : <div className="vs-empty"><b>No locked trio for this match</b><span>Official match data is still shown without assigning you a score.</span></div>}
+
+            {/* Bench Section */}
+            {maxBench > 0 && <div className="bench-section">
+              <div className="bench-header"><TeamFlag name={activeFixture.homeTeam} className="bench-flag" /><span>Bench</span><TeamFlag name={activeFixture.awayTeam} className="bench-flag" /></div>
+              <div className="bench-grid">
+                <div className="bench-col">
+                  {homeSubs.map(p => {
+                    const img = `/players/${p.id}.png`;
+                    return (
+                      <div className="bench-player" key={p.id}>
+                        <div className="bench-avatar-wrapper" style={{ width: "24px", height: "24px", margin: 0, flex: "none" }}>
+                          <img className="pitch-avatar" src={img} alt={p.name} onError={(e) => {
+                            if (e.currentTarget.src.endsWith(".png")) {
+                              e.currentTarget.src = `/players/${p.id}.svg`;
+                            } else if (!e.currentTarget.src.endsWith("default.svg")) {
+                              e.currentTarget.src = "/players/default.svg";
+                            }
+                          }} />
+                        </div>
+                        {p.impactRating !== null && <span className="bench-rating" style={{ background: ratingColor(p.impactRating) }}>{p.impactRating.toFixed(1)}</span>}
+                        <span className="bench-name">
+                          <b>{shortenName(p.name)}</b>
+                          <small>{p.position}{p.goals > 0 ? " ⚽" : ""}{p.yellowCards > 0 ? " 🟨" : ""}{p.redCards > 0 ? " 🟥" : ""}</small>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="bench-col">
+                  {awaySubs.map(p => {
+                    const img = `/players/${p.id}.png`;
+                    return (
+                      <div className="bench-player" key={p.id}>
+                        <div className="bench-avatar-wrapper" style={{ width: "24px", height: "24px", margin: 0, flex: "none" }}>
+                          <img className="pitch-avatar" src={img} alt={p.name} onError={(e) => {
+                            if (e.currentTarget.src.endsWith(".png")) {
+                              e.currentTarget.src = `/players/${p.id}.svg`;
+                            } else if (!e.currentTarget.src.endsWith("default.svg")) {
+                              e.currentTarget.src = "/players/default.svg";
+                            }
+                          }} />
+                        </div>
+                        {p.impactRating !== null && <span className="bench-rating" style={{ background: ratingColor(p.impactRating) }}>{p.impactRating.toFixed(1)}</span>}
+                        <span className="bench-name">
+                          <b>{shortenName(p.name)}</b>
+                          <small>{p.position}{p.goals > 0 ? " ⚽" : ""}{p.yellowCards > 0 ? " 🟨" : ""}{p.redCards > 0 ? " 🟥" : ""}</small>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>}
+          </>}
+        </div>;
+      })()}
 
       {screen === "history" && <div className="screen enter"><div className="page-title"><span className="eyebrow">REAL USER HISTORY</span><h1>Your matches</h1><p>Only fixtures where this device locked a real TxLINE lineup.</p></div>{participations.length ? <div className="real-list">{participations.map((entry) => { const fixture = fixtures.find((item) => item.id === entry.fixtureId); return fixture ? <FixtureRow key={entry.fixtureId} fixture={fixture} onClick={() => openFixture(fixture)} /> : null; })}</div> : <div className="real-empty large"><b>No participation history yet</b><span>Choose three players from a real official lineup. That match will then appear here.</span></div>}</div>}
 

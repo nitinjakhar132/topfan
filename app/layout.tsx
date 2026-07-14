@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 
-const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
-
 export async function generateMetadata(): Promise<Metadata> {
-  const requestHeaders = await headers();
-  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
-  const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const origin = `${protocol}://${host}`;
+  const host = "localhost:3000";
+  const origin = `http://${host}`;
 
   return {
     metadataBase: new URL(origin),
@@ -32,5 +27,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={geist.variable}>{children}</body></html>;
+  return (
+    <html lang="en">
+      <body className="font-sans" style={{ "--font-geist": "system-ui, -apple-system, sans-serif" } as React.CSSProperties}>
+        {children}
+      </body>
+    </html>
+  );
 }

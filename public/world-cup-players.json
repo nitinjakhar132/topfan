@@ -1,0 +1,4102 @@
+[
+  {
+    "id": 839719,
+    "name": "Aaronson, Brenden",
+    "team": "USA"
+  },
+  {
+    "id": 839720,
+    "name": "Adams, Tyler",
+    "team": "USA"
+  },
+  {
+    "id": 839722,
+    "name": "Arfsten, Max",
+    "team": "USA"
+  },
+  {
+    "id": 839723,
+    "name": "Balogun, Folarin",
+    "team": "USA"
+  },
+  {
+    "id": 839725,
+    "name": "Berhalter, Sebastian",
+    "team": "USA"
+  },
+  {
+    "id": 839727,
+    "name": "Brady, Chris",
+    "team": "USA"
+  },
+  {
+    "id": 839733,
+    "name": "Dest, Sergino",
+    "team": "USA"
+  },
+  {
+    "id": 839736,
+    "name": "Freeman, Alex",
+    "team": "USA"
+  },
+  {
+    "id": 839737,
+    "name": "Freese, Matthew",
+    "team": "USA"
+  },
+  {
+    "id": 839744,
+    "name": "McKennie, Weston",
+    "team": "USA"
+  },
+  {
+    "id": 839745,
+    "name": "McKenzie, Mark",
+    "team": "USA"
+  },
+  {
+    "id": 839749,
+    "name": "Pepi, Ricardo",
+    "team": "USA"
+  },
+  {
+    "id": 839750,
+    "name": "Pulisic, Christian",
+    "team": "USA"
+  },
+  {
+    "id": 839751,
+    "name": "Ream, Tim",
+    "team": "USA"
+  },
+  {
+    "id": 839752,
+    "name": "Reyna, Giovanni",
+    "team": "USA"
+  },
+  {
+    "id": 839753,
+    "name": "Richards, Chris",
+    "team": "USA"
+  },
+  {
+    "id": 839754,
+    "name": "Robinson, Antonee",
+    "team": "USA"
+  },
+  {
+    "id": 839755,
+    "name": "Robinson, Miles",
+    "team": "USA"
+  },
+  {
+    "id": 839756,
+    "name": "Roldan, Cristian",
+    "team": "USA"
+  },
+  {
+    "id": 839759,
+    "name": "Scally, Joseph",
+    "team": "USA"
+  },
+  {
+    "id": 839762,
+    "name": "Tillman, Malik",
+    "team": "USA"
+  },
+  {
+    "id": 839765,
+    "name": "Trusty, Auston",
+    "team": "USA"
+  },
+  {
+    "id": 839766,
+    "name": "Turner, Matt",
+    "team": "USA"
+  },
+  {
+    "id": 839767,
+    "name": "Weah, Timothy",
+    "team": "USA"
+  },
+  {
+    "id": 839768,
+    "name": "Wright, Haji",
+    "team": "USA"
+  },
+  {
+    "id": 839769,
+    "name": "Zendejas, Alejandro",
+    "team": "USA"
+  },
+  {
+    "id": 838224,
+    "name": "Alajbegovic, Kerim",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838225,
+    "name": "Bajraktarevic, Esmir",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838227,
+    "name": "Basic, Ivan",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838228,
+    "name": "Bazdar, Samed",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838231,
+    "name": "Burnic, Dzenis",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838233,
+    "name": "Dedic, Amar",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838234,
+    "name": "Demirovic, Ermedin",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838235,
+    "name": "Djakovac, Ifet",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838236,
+    "name": "Dzeko, Edin",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838238,
+    "name": "Gigovic, Armin",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838240,
+    "name": "Hadziahmetovic, Amir",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838241,
+    "name": "Hadzikadunic, Dennis",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838242,
+    "name": "Hadzikic, Osman",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838245,
+    "name": "Jurkas, Mladen",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838248,
+    "name": "Katic, Nikola",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838249,
+    "name": "Kolasinac, Sead",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838255,
+    "name": "Lukic, Jovo",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838256,
+    "name": "Mahmic, Ermin",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838257,
+    "name": "Malic, Arjan",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838258,
+    "name": "Memic, Amar",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838260,
+    "name": "Muharemovic, Tarik",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838261,
+    "name": "Mujakic, Nihad",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838263,
+    "name": "Radeljic, Stjepan",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838266,
+    "name": "Sunjic, Ivan",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838267,
+    "name": "Tabakovic, Haris",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838268,
+    "name": "Tahirovic, Benjamin",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838269,
+    "name": "Vasilj, Nikola",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 838270,
+    "name": "Zlomislic, Martin",
+    "team": "Bosnia & Herzegovina"
+  },
+  {
+    "id": 837574,
+    "name": "Adingra, Simon",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837575,
+    "name": "Agbadou, Emmanuel",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837578,
+    "name": "Aurier, Serge",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837581,
+    "name": "Bonny, Ange-Yoan",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837582,
+    "name": "Diakite, Oumar",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837583,
+    "name": "Diallo Traore, Amad",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837587,
+    "name": "Diomande, Ousmane",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837588,
+    "name": "Diomande, Yan",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837590,
+    "name": "Doue, Guela",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837591,
+    "name": "Fofana, Seko Mohamed",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837592,
+    "name": "Fofana, Yahia",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837595,
+    "name": "Guessand, Evann",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837596,
+    "name": "Guiagon, Parfait",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837599,
+    "name": "Kessie, Franck Yannick",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837600,
+    "name": "Konan, Ghislain",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837601,
+    "name": "Kone, Mohamed",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837603,
+    "name": "Kossounou, Odilon",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837605,
+    "name": "Lafont, Alban",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837606,
+    "name": "N'Dicka, Obite Evan",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837607,
+    "name": "Operi, Christopher",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837608,
+    "name": "Oulai, Christ Inao",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837609,
+    "name": "Pepe, Nicolas",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837610,
+    "name": "Sangare, Ibrahim",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837611,
+    "name": "Seri, Jean Michael",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837612,
+    "name": "Singo, Wilfried Stephane",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837614,
+    "name": "Toure, Bazoumana",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 837616,
+    "name": "Wahi, Elye",
+    "team": "Ivory Coast"
+  },
+  {
+    "id": 840379,
+    "name": "Aasgaard, Thelo",
+    "team": "Norway"
+  },
+  {
+    "id": 840381,
+    "name": "Aursnes, Fredrik",
+    "team": "Norway"
+  },
+  {
+    "id": 840382,
+    "name": "Berg, Patrick",
+    "team": "Norway"
+  },
+  {
+    "id": 840383,
+    "name": "Berge, Sander",
+    "team": "Norway"
+  },
+  {
+    "id": 840384,
+    "name": "Bjorkan, Fredrik Andre",
+    "team": "Norway"
+  },
+  {
+    "id": 840386,
+    "name": "Bobb, Oscar",
+    "team": "Norway"
+  },
+  {
+    "id": 840390,
+    "name": "Falchener, Henrik",
+    "team": "Norway"
+  },
+  {
+    "id": 840392,
+    "name": "Haaland, Erling",
+    "team": "Norway"
+  },
+  {
+    "id": 840394,
+    "name": "Hauge, Jens",
+    "team": "Norway"
+  },
+  {
+    "id": 840396,
+    "name": "Heggem, Torbjorn",
+    "team": "Norway"
+  },
+  {
+    "id": 840400,
+    "name": "Langas, Sondre",
+    "team": "Norway"
+  },
+  {
+    "id": 840401,
+    "name": "Larsen, Jorgen Strand",
+    "team": "Norway"
+  },
+  {
+    "id": 840402,
+    "name": "Moller Wolfe, David",
+    "team": "Norway"
+  },
+  {
+    "id": 840403,
+    "name": "Nusa, Antonio",
+    "team": "Norway"
+  },
+  {
+    "id": 840404,
+    "name": "Nyland, Orjan",
+    "team": "Norway"
+  },
+  {
+    "id": 840406,
+    "name": "Odegaard, Martin",
+    "team": "Norway"
+  },
+  {
+    "id": 840407,
+    "name": "Pedersen, Marcus Holmgren",
+    "team": "Norway"
+  },
+  {
+    "id": 840410,
+    "name": "Ryerson, Julian",
+    "team": "Norway"
+  },
+  {
+    "id": 840411,
+    "name": "Schjelderup, Andreas",
+    "team": "Norway"
+  },
+  {
+    "id": 840413,
+    "name": "Selvik, Egil",
+    "team": "Norway"
+  },
+  {
+    "id": 840415,
+    "name": "Skiri Oestigaard, Leo",
+    "team": "Norway"
+  },
+  {
+    "id": 840416,
+    "name": "Sorloth, Alexander",
+    "team": "Norway"
+  },
+  {
+    "id": 840417,
+    "name": "Tangvik, Sander",
+    "team": "Norway"
+  },
+  {
+    "id": 840418,
+    "name": "Thorsby, Morten",
+    "team": "Norway"
+  },
+  {
+    "id": 840419,
+    "name": "Thorstvedt, Kristian",
+    "team": "Norway"
+  },
+  {
+    "id": 840420,
+    "name": "Vassbakk Ajer, Kristoffer",
+    "team": "Norway"
+  },
+  {
+    "id": 840479,
+    "name": "Almada, Thiago",
+    "team": "Argentina"
+  },
+  {
+    "id": 840480,
+    "name": "Alvarez, Julian",
+    "team": "Argentina"
+  },
+  {
+    "id": 840482,
+    "name": "Balerdi Rossa, Leonardo Julian",
+    "team": "Argentina"
+  },
+  {
+    "id": 840483,
+    "name": "Barco, Valentin",
+    "team": "Argentina"
+  },
+  {
+    "id": 840493,
+    "name": "De Paul, Rodrigo",
+    "team": "Argentina"
+  },
+  {
+    "id": 840502,
+    "name": "Fernandez, Enzo",
+    "team": "Argentina"
+  },
+  {
+    "id": 840508,
+    "name": "Gonzalez, Nicolas Ivan",
+    "team": "Argentina"
+  },
+  {
+    "id": 840509,
+    "name": "Lo Celso, Giovani",
+    "team": "Argentina"
+  },
+  {
+    "id": 840510,
+    "name": "Lopez, Jose Manuel",
+    "team": "Argentina"
+  },
+  {
+    "id": 840511,
+    "name": "Mac Allister, Alexis",
+    "team": "Argentina"
+  },
+  {
+    "id": 840514,
+    "name": "Martinez, Damian Emiliano",
+    "team": "Argentina"
+  },
+  {
+    "id": 840515,
+    "name": "Martinez, Lautaro Javier",
+    "team": "Argentina"
+  },
+  {
+    "id": 840516,
+    "name": "Martinez, Lisandro",
+    "team": "Argentina"
+  },
+  {
+    "id": 840518,
+    "name": "Medina, Facundo",
+    "team": "Argentina"
+  },
+  {
+    "id": 840519,
+    "name": "Messi, Lionel",
+    "team": "Argentina"
+  },
+  {
+    "id": 840520,
+    "name": "Molina Lucero, Nahuel",
+    "team": "Argentina"
+  },
+  {
+    "id": 840521,
+    "name": "Montiel, Gonzalo Ariel",
+    "team": "Argentina"
+  },
+  {
+    "id": 840523,
+    "name": "Musso, Juan Agustin",
+    "team": "Argentina"
+  },
+  {
+    "id": 840524,
+    "name": "Otamendi, Nicolas",
+    "team": "Argentina"
+  },
+  {
+    "id": 840526,
+    "name": "Palacios, Exequiel",
+    "team": "Argentina"
+  },
+  {
+    "id": 840528,
+    "name": "Paredes, Leandro",
+    "team": "Argentina"
+  },
+  {
+    "id": 840529,
+    "name": "Paz Martinez, Nicolas",
+    "team": "Argentina"
+  },
+  {
+    "id": 840537,
+    "name": "Romero, Cristian Gabriel",
+    "team": "Argentina"
+  },
+  {
+    "id": 840539,
+    "name": "Rulli, Geronimo",
+    "team": "Argentina"
+  },
+  {
+    "id": 840540,
+    "name": "Senesi, Marcos",
+    "team": "Argentina"
+  },
+  {
+    "id": 840542,
+    "name": "Simeone, Giuliano",
+    "team": "Argentina"
+  },
+  {
+    "id": 840544,
+    "name": "Tagliafico, Nicolas Alejandro",
+    "team": "Argentina"
+  },
+  {
+    "id": 840545,
+    "name": "Talavera, Demian",
+    "team": "Argentina"
+  },
+  {
+    "id": 838876,
+    "name": "Pina, Wagner",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838877,
+    "name": "Pires, Kelvin",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838880,
+    "name": "Semedo Johnson, Willy Afonso",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838882,
+    "name": "Semedo, Yannick",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838883,
+    "name": "Sidny Lopes Cabral",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838850,
+    "name": "Arcanjo, Telmo",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838851,
+    "name": "Benchimol, Gilson",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838852,
+    "name": "Borges Cabral, Jovane Eduardo",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838853,
+    "name": "Borges, Diney",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838855,
+    "name": "Costa, Logan",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838856,
+    "name": "Da Costa, Joia Nuno",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838859,
+    "name": "Dos Santos, Carlos Joaquim",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838860,
+    "name": "Duarte, Deroy",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838861,
+    "name": "Duarte, Laros",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838863,
+    "name": "Fernandes, Joao Paulo",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838866,
+    "name": "Livramento, Dailon",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838867,
+    "name": "Lopes, Roberto",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838868,
+    "name": "Mendes Rodrigues, Garry",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838870,
+    "name": "Mendes, Ryan",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838871,
+    "name": "Monteiro Alvarenga, Jamiro Gregory",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838873,
+    "name": "Moreira, Steven",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838875,
+    "name": "Pina, Kevin",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838889,
+    "name": "Varela, Helio",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838890,
+    "name": "Vozinha, Josimar",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838892,
+    "name": "da Rosa, Marcio",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 838893,
+    "name": "dos Santos Tavares, Ianique",
+    "team": "Cape Verde"
+  },
+  {
+    "id": 840082,
+    "name": "Akliouche, Maghnes",
+    "team": "France"
+  },
+  {
+    "id": 840084,
+    "name": "Barcola, Bradley",
+    "team": "France"
+  },
+  {
+    "id": 840086,
+    "name": "Cherki, Mathis Rayan",
+    "team": "France"
+  },
+  {
+    "id": 840089,
+    "name": "Dembele, Ousmane",
+    "team": "France"
+  },
+  {
+    "id": 840090,
+    "name": "Digne, Lucas",
+    "team": "France"
+  },
+  {
+    "id": 840092,
+    "name": "Doue, Desire",
+    "team": "France"
+  },
+  {
+    "id": 840097,
+    "name": "Gusto, Malo Arthur",
+    "team": "France"
+  },
+  {
+    "id": 840098,
+    "name": "Hernandez, Lucas",
+    "team": "France"
+  },
+  {
+    "id": 840099,
+    "name": "Hernandez, Theo",
+    "team": "France"
+  },
+  {
+    "id": 840101,
+    "name": "Kante, N'Golo",
+    "team": "France"
+  },
+  {
+    "id": 840103,
+    "name": "Konate, Ibrahima",
+    "team": "France"
+  },
+  {
+    "id": 840104,
+    "name": "Kone, Kouadio",
+    "team": "France"
+  },
+  {
+    "id": 840105,
+    "name": "Kounde, Jules",
+    "team": "France"
+  },
+  {
+    "id": 840106,
+    "name": "Lacroix, Maxence",
+    "team": "France"
+  },
+  {
+    "id": 840107,
+    "name": "Maignan, Mike",
+    "team": "France"
+  },
+  {
+    "id": 840108,
+    "name": "Mateta, Jean-Philippe",
+    "team": "France"
+  },
+  {
+    "id": 840109,
+    "name": "Mbappe Lottin, Kylian",
+    "team": "France"
+  },
+  {
+    "id": 840111,
+    "name": "Olise, Michael",
+    "team": "France"
+  },
+  {
+    "id": 840113,
+    "name": "Rabiot, Adrien",
+    "team": "France"
+  },
+  {
+    "id": 840114,
+    "name": "Risser, Robin",
+    "team": "France"
+  },
+  {
+    "id": 840115,
+    "name": "Saliba, William",
+    "team": "France"
+  },
+  {
+    "id": 840116,
+    "name": "Samba, Brice",
+    "team": "France"
+  },
+  {
+    "id": 840117,
+    "name": "Tchouameni, Aurelien",
+    "team": "France"
+  },
+  {
+    "id": 840119,
+    "name": "Thuram, Marcus",
+    "team": "France"
+  },
+  {
+    "id": 840122,
+    "name": "Upamecano, Dayotchanculle",
+    "team": "France"
+  },
+  {
+    "id": 840123,
+    "name": "Zaire-Emery, Warren",
+    "team": "France"
+  },
+  {
+    "id": 837705,
+    "name": "Ali, Taha",
+    "team": "Sweden"
+  },
+  {
+    "id": 837707,
+    "name": "Ayari, Yasin",
+    "team": "Sweden"
+  },
+  {
+    "id": 837709,
+    "name": "Bergvall, Lucas",
+    "team": "Sweden"
+  },
+  {
+    "id": 837710,
+    "name": "Bernhardsson, Alexander",
+    "team": "Sweden"
+  },
+  {
+    "id": 837716,
+    "name": "Ekdal, Hjalmar",
+    "team": "Sweden"
+  },
+  {
+    "id": 837717,
+    "name": "Elanga, Anthony",
+    "team": "Sweden"
+  },
+  {
+    "id": 837722,
+    "name": "Gudmundsson, Gabriel",
+    "team": "Sweden"
+  },
+  {
+    "id": 837724,
+    "name": "Gyokeres, Viktor",
+    "team": "Sweden"
+  },
+  {
+    "id": 837725,
+    "name": "Hien, Isak",
+    "team": "Sweden"
+  },
+  {
+    "id": 837727,
+    "name": "Isak, Alexander",
+    "team": "Sweden"
+  },
+  {
+    "id": 837728,
+    "name": "Johansson, Herman",
+    "team": "Sweden"
+  },
+  {
+    "id": 837729,
+    "name": "Johansson, Viktor",
+    "team": "Sweden"
+  },
+  {
+    "id": 837730,
+    "name": "Karlstrom, Jesper",
+    "team": "Sweden"
+  },
+  {
+    "id": 837734,
+    "name": "Lagerbielke, Gustaf",
+    "team": "Sweden"
+  },
+  {
+    "id": 837738,
+    "name": "Lindelof, Victor",
+    "team": "Sweden"
+  },
+  {
+    "id": 837741,
+    "name": "Nilsson, Gustaf",
+    "team": "Sweden"
+  },
+  {
+    "id": 837742,
+    "name": "Nordfeldt, Kristoffer",
+    "team": "Sweden"
+  },
+  {
+    "id": 837744,
+    "name": "Nygren, Benjamin",
+    "team": "Sweden"
+  },
+  {
+    "id": 837748,
+    "name": "Sema, Ken",
+    "team": "Sweden"
+  },
+  {
+    "id": 837749,
+    "name": "Smith, Eric",
+    "team": "Sweden"
+  },
+  {
+    "id": 837750,
+    "name": "Starfelt, Carl",
+    "team": "Sweden"
+  },
+  {
+    "id": 837751,
+    "name": "Stroud, Elliot",
+    "team": "Sweden"
+  },
+  {
+    "id": 837752,
+    "name": "Svanberg, Mattias",
+    "team": "Sweden"
+  },
+  {
+    "id": 837753,
+    "name": "Svensson, Daniel (2002)",
+    "team": "Sweden"
+  },
+  {
+    "id": 837758,
+    "name": "Zeneli, Besfort",
+    "team": "Sweden"
+  },
+  {
+    "id": 837759,
+    "name": "Zetterstrom, Jacob Widell",
+    "team": "Sweden"
+  },
+  {
+    "id": 838718,
+    "name": "Beach, Patrick",
+    "team": "Australia"
+  },
+  {
+    "id": 838719,
+    "name": "Behich, Aziz Eraltay",
+    "team": "Australia"
+  },
+  {
+    "id": 838721,
+    "name": "Bos, Jordan",
+    "team": "Australia"
+  },
+  {
+    "id": 838725,
+    "name": "Burgess, Cameron",
+    "team": "Australia"
+  },
+  {
+    "id": 838726,
+    "name": "Circati, Alessandro",
+    "team": "Australia"
+  },
+  {
+    "id": 838728,
+    "name": "Degenek, Milos",
+    "team": "Australia"
+  },
+  {
+    "id": 838729,
+    "name": "Devlin, Cameron",
+    "team": "Australia"
+  },
+  {
+    "id": 838733,
+    "name": "Geria, Jason",
+    "team": "Australia"
+  },
+  {
+    "id": 838737,
+    "name": "Herrington, Lucas",
+    "team": "Australia"
+  },
+  {
+    "id": 838738,
+    "name": "Hrustic, Ajdin",
+    "team": "Australia"
+  },
+  {
+    "id": 838739,
+    "name": "Irankunda, Nestory",
+    "team": "Australia"
+  },
+  {
+    "id": 838742,
+    "name": "Irvine, Jackson",
+    "team": "Australia"
+  },
+  {
+    "id": 838743,
+    "name": "Italiano, Jacob",
+    "team": "Australia"
+  },
+  {
+    "id": 838744,
+    "name": "Izzo, Paul",
+    "team": "Australia"
+  },
+  {
+    "id": 838748,
+    "name": "Leckie, Matthew",
+    "team": "Australia"
+  },
+  {
+    "id": 838749,
+    "name": "Mabil, Awer",
+    "team": "Australia"
+  },
+  {
+    "id": 838752,
+    "name": "Metcalfe, Connor",
+    "team": "Australia"
+  },
+  {
+    "id": 838756,
+    "name": "O'Neill, Aiden",
+    "team": "Australia"
+  },
+  {
+    "id": 838757,
+    "name": "Okon-Engstler, Paul",
+    "team": "Australia"
+  },
+  {
+    "id": 838758,
+    "name": "Overy, James",
+    "team": "Australia"
+  },
+  {
+    "id": 838759,
+    "name": "Robertson, Alex",
+    "team": "Australia"
+  },
+  {
+    "id": 838761,
+    "name": "Ryan, Mathew",
+    "team": "Australia"
+  },
+  {
+    "id": 838763,
+    "name": "Souttar, Harry",
+    "team": "Australia"
+  },
+  {
+    "id": 838769,
+    "name": "Toure, Al Hassan",
+    "team": "Australia"
+  },
+  {
+    "id": 838770,
+    "name": "Toure, Mohamed",
+    "team": "Australia"
+  },
+  {
+    "id": 838771,
+    "name": "Trewin, Kai",
+    "team": "Australia"
+  },
+  {
+    "id": 838773,
+    "name": "Velupillay, Nishan",
+    "team": "Australia"
+  },
+  {
+    "id": 838774,
+    "name": "Volpato, Cristian",
+    "team": "Australia"
+  },
+  {
+    "id": 838776,
+    "name": "Yengi, Tete",
+    "team": "Australia"
+  },
+  {
+    "id": 838632,
+    "name": "Abdelkarim, Hamza",
+    "team": "Egypt"
+  },
+  {
+    "id": 838633,
+    "name": "Abdelmaguid, Hossam",
+    "team": "Egypt"
+  },
+  {
+    "id": 838634,
+    "name": "Abdelmonem, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838635,
+    "name": "Abougabal, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838637,
+    "name": "Adel, Ibrahim",
+    "team": "Egypt"
+  },
+  {
+    "id": 838640,
+    "name": "Alaa, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838641,
+    "name": "Alaa, Tarek",
+    "team": "Egypt"
+  },
+  {
+    "id": 838643,
+    "name": "Ashour, Emam",
+    "team": "Egypt"
+  },
+  {
+    "id": 838644,
+    "name": "Ashraf, Ayman",
+    "team": "Egypt"
+  },
+  {
+    "id": 838645,
+    "name": "Atef, Ahmed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838647,
+    "name": "Attia, Marwan",
+    "team": "Egypt"
+  },
+  {
+    "id": 838649,
+    "name": "Bakr, Mohamed Sherif Mohamed Ragaei",
+    "team": "Egypt"
+  },
+  {
+    "id": 838651,
+    "name": "Dawoud, Marwan Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838652,
+    "name": "Eid, Ahmed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838653,
+    "name": "El Hanafi, Yasser",
+    "team": "Egypt"
+  },
+  {
+    "id": 838655,
+    "name": "El Shenawy, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838656,
+    "name": "Elsayed Elneny, Mohamed Naser",
+    "team": "Egypt"
+  },
+  {
+    "id": 838657,
+    "name": "Emad, Nabil",
+    "team": "Egypt"
+  },
+  {
+    "id": 838658,
+    "name": "Faisal, Osama",
+    "team": "Egypt"
+  },
+  {
+    "id": 838659,
+    "name": "Fathi, Mostafa",
+    "team": "Egypt"
+  },
+  {
+    "id": 838660,
+    "name": "Fathy, Hamdy",
+    "team": "Egypt"
+  },
+  {
+    "id": 838661,
+    "name": "Fatouh, Ahmed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838664,
+    "name": "Gabr, Ali",
+    "team": "Egypt"
+  },
+  {
+    "id": 838665,
+    "name": "Gad, Mahmoud",
+    "team": "Egypt"
+  },
+  {
+    "id": 838666,
+    "name": "Hafez Ramadan, Karim",
+    "team": "Egypt"
+  },
+  {
+    "id": 838668,
+    "name": "Hamdi, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838669,
+    "name": "Hany Eldemerdash, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838671,
+    "name": "Hassan, Haissem",
+    "team": "Egypt"
+  },
+  {
+    "id": 838673,
+    "name": "Hassan, Mahmoud Saber Abdelmohsen",
+    "team": "Egypt"
+  },
+  {
+    "id": 838674,
+    "name": "Ismail, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838679,
+    "name": "Lasheen, Mohanad",
+    "team": "Egypt"
+  },
+  {
+    "id": 838684,
+    "name": "Marmoush, Omar",
+    "team": "Egypt"
+  },
+  {
+    "id": 838688,
+    "name": "Mohsen, Salah",
+    "team": "Egypt"
+  },
+  {
+    "id": 838693,
+    "name": "Rabia, Rami Hisham Abdel Aziz",
+    "team": "Egypt"
+  },
+  {
+    "id": 838694,
+    "name": "Refaat, Ahmed El Sayed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838697,
+    "name": "Salah, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838698,
+    "name": "Sayed Zizo, Ahmed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838701,
+    "name": "Shalaby, Mostafa",
+    "team": "Egypt"
+  },
+  {
+    "id": 838702,
+    "name": "Shehata, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838704,
+    "name": "Shobeir, Oufa",
+    "team": "Egypt"
+  },
+  {
+    "id": 838706,
+    "name": "Sobhi, Khaled",
+    "team": "Egypt"
+  },
+  {
+    "id": 838707,
+    "name": "Sobhi, Mohamed",
+    "team": "Egypt"
+  },
+  {
+    "id": 838708,
+    "name": "Sobhi, Ramadan",
+    "team": "Egypt"
+  },
+  {
+    "id": 838709,
+    "name": "Soliman, Al Mahdi",
+    "team": "Egypt"
+  },
+  {
+    "id": 838711,
+    "name": "Toeima, Osama Galal",
+    "team": "Egypt"
+  },
+  {
+    "id": 838712,
+    "name": "Trezeguet, Mahmoud",
+    "team": "Egypt"
+  },
+  {
+    "id": 838715,
+    "name": "Ziko, Mostafa",
+    "team": "Egypt"
+  },
+  {
+    "id": 840027,
+    "name": "Arias Andrade, Jhon Adolfo",
+    "team": "Colombia"
+  },
+  {
+    "id": 840028,
+    "name": "Arias Naranjo, Santiago",
+    "team": "Colombia"
+  },
+  {
+    "id": 840033,
+    "name": "Campaz, Jaminton Leandro",
+    "team": "Colombia"
+  },
+  {
+    "id": 840035,
+    "name": "Carrascal Guardo, Jorge Andres",
+    "team": "Colombia"
+  },
+  {
+    "id": 840036,
+    "name": "Castano, Kevin",
+    "team": "Colombia"
+  },
+  {
+    "id": 840037,
+    "name": "Cordoba Copete, Jhon Andres",
+    "team": "Colombia"
+  },
+  {
+    "id": 840039,
+    "name": "Diaz Marulanda, Luis Fernando",
+    "team": "Colombia"
+  },
+  {
+    "id": 840040,
+    "name": "Ditta Perez, Willer Emilio",
+    "team": "Colombia"
+  },
+  {
+    "id": 840041,
+    "name": "Gomez Hinestroza, Carlos Andres",
+    "team": "Colombia"
+  },
+  {
+    "id": 840042,
+    "name": "Hernandez Suarez, Juan Camilo",
+    "team": "Colombia"
+  },
+  {
+    "id": 840044,
+    "name": "Lerma Solis, Jefferson Andres",
+    "team": "Colombia"
+  },
+  {
+    "id": 840045,
+    "name": "Lucumi Bonilla, Jhon Janer",
+    "team": "Colombia"
+  },
+  {
+    "id": 840046,
+    "name": "Machado Mena, Deiver Andres",
+    "team": "Colombia"
+  },
+  {
+    "id": 840048,
+    "name": "Mina Gonzalez, Yerry Fernando",
+    "team": "Colombia"
+  },
+  {
+    "id": 840049,
+    "name": "Mojica Palacio, Johan Andres",
+    "team": "Colombia"
+  },
+  {
+    "id": 840050,
+    "name": "Montero Perales, Alvaro David",
+    "team": "Colombia"
+  },
+  {
+    "id": 840053,
+    "name": "Munoz Mejia, Daniel",
+    "team": "Colombia"
+  },
+  {
+    "id": 840054,
+    "name": "Ospina Ramirez, David",
+    "team": "Colombia"
+  },
+  {
+    "id": 840055,
+    "name": "Portilla Orozco, Juan Camilo",
+    "team": "Colombia"
+  },
+  {
+    "id": 840057,
+    "name": "Puerta, Gustavo",
+    "team": "Colombia"
+  },
+  {
+    "id": 840058,
+    "name": "Quintero Paniagua, Juan Fernando",
+    "team": "Colombia"
+  },
+  {
+    "id": 840059,
+    "name": "Rios, Richard",
+    "team": "Colombia"
+  },
+  {
+    "id": 840060,
+    "name": "Rodriguez, James",
+    "team": "Colombia"
+  },
+  {
+    "id": 840062,
+    "name": "Sanchez Mina, Davinson",
+    "team": "Colombia"
+  },
+  {
+    "id": 840065,
+    "name": "Suarez Charris, Luis Javier",
+    "team": "Colombia"
+  },
+  {
+    "id": 840066,
+    "name": "Vargas Gil, Camilo Andres",
+    "team": "Colombia"
+  },
+  {
+    "id": 838936,
+    "name": "Abbey Quaye, Maxwell Nii",
+    "team": "Ghana"
+  },
+  {
+    "id": 838938,
+    "name": "Adjetey, Jonas",
+    "team": "Ghana"
+  },
+  {
+    "id": 838939,
+    "name": "Adu, Prince",
+    "team": "Ghana"
+  },
+  {
+    "id": 838945,
+    "name": "Amartey, Daniel",
+    "team": "Ghana"
+  },
+  {
+    "id": 838947,
+    "name": "Asare, Benjamin",
+    "team": "Ghana"
+  },
+  {
+    "id": 838949,
+    "name": "Ati-Zigi, Lawrence",
+    "team": "Ghana"
+  },
+  {
+    "id": 838950,
+    "name": "Attah, Richard",
+    "team": "Ghana"
+  },
+  {
+    "id": 838952,
+    "name": "Ayew, Jordan",
+    "team": "Ghana"
+  },
+  {
+    "id": 838953,
+    "name": "Baba, Abdul Rahman",
+    "team": "Ghana"
+  },
+  {
+    "id": 838954,
+    "name": "Boakye, Augustine",
+    "team": "Ghana"
+  },
+  {
+    "id": 838955,
+    "name": "Bonsu Baah, Christopher",
+    "team": "Ghana"
+  },
+  {
+    "id": 838957,
+    "name": "Danlad, Ibrahim",
+    "team": "Ghana"
+  },
+  {
+    "id": 838960,
+    "name": "Fatawu, Issakahu Abdul",
+    "team": "Ghana"
+  },
+  {
+    "id": 838964,
+    "name": "Kamaheni, Montari",
+    "team": "Ghana"
+  },
+  {
+    "id": 838971,
+    "name": "Luckassen, Derrick",
+    "team": "Ghana"
+  },
+  {
+    "id": 838972,
+    "name": "Mensah, Gideon",
+    "team": "Ghana"
+  },
+  {
+    "id": 838974,
+    "name": "Mubarak, Wakaso",
+    "team": "Ghana"
+  },
+  {
+    "id": 838975,
+    "name": "Mumin Suleman, Khalid Abdul",
+    "team": "Ghana"
+  },
+  {
+    "id": 838978,
+    "name": "Nuamah, Ernest",
+    "team": "Ghana"
+  },
+  {
+    "id": 838981,
+    "name": "Ofori Antwi, Richard",
+    "team": "Ghana"
+  },
+  {
+    "id": 838983,
+    "name": "Opoku, Jerome",
+    "team": "Ghana"
+  },
+  {
+    "id": 838986,
+    "name": "Owusu, Elisha",
+    "team": "Ghana"
+  },
+  {
+    "id": 838990,
+    "name": "Partey, Thomas Teye",
+    "team": "Ghana"
+  },
+  {
+    "id": 838991,
+    "name": "Peprah Oppong, Kojo",
+    "team": "Ghana"
+  },
+  {
+    "id": 838996,
+    "name": "Seidu, Alidu",
+    "team": "Ghana"
+  },
+  {
+    "id": 838997,
+    "name": "Semenyo, Antoine",
+    "team": "Ghana"
+  },
+  {
+    "id": 838998,
+    "name": "Senaya, Marvin",
+    "team": "Ghana"
+  },
+  {
+    "id": 838999,
+    "name": "Sibo, Kwasi",
+    "team": "Ghana"
+  },
+  {
+    "id": 839003,
+    "name": "Sulemana, Kamaldeen",
+    "team": "Ghana"
+  },
+  {
+    "id": 839004,
+    "name": "Tetteh Anang, Joseph",
+    "team": "Ghana"
+  },
+  {
+    "id": 839005,
+    "name": "Thomas-Asante, Brandon",
+    "team": "Ghana"
+  },
+  {
+    "id": 839006,
+    "name": "Williams, Inaki",
+    "team": "Ghana"
+  },
+  {
+    "id": 839009,
+    "name": "Yirenkyi, Caleb Marfo",
+    "team": "Ghana"
+  },
+  {
+    "id": 840250,
+    "name": "Castagne, Timothy",
+    "team": "Belgium"
+  },
+  {
+    "id": 840251,
+    "name": "Courtois, Thibaut",
+    "team": "Belgium"
+  },
+  {
+    "id": 840252,
+    "name": "De Bruyne, Kevin",
+    "team": "Belgium"
+  },
+  {
+    "id": 840253,
+    "name": "De Cuyper, Maxim",
+    "team": "Belgium"
+  },
+  {
+    "id": 840254,
+    "name": "De Ketelaere, Charles",
+    "team": "Belgium"
+  },
+  {
+    "id": 840255,
+    "name": "De Winter, Koni",
+    "team": "Belgium"
+  },
+  {
+    "id": 840256,
+    "name": "Debast, Zeno",
+    "team": "Belgium"
+  },
+  {
+    "id": 840257,
+    "name": "Doku, Jeremy",
+    "team": "Belgium"
+  },
+  {
+    "id": 840259,
+    "name": "Fernandez-Pardo, Matias",
+    "team": "Belgium"
+  },
+  {
+    "id": 840262,
+    "name": "Lammens, Senne",
+    "team": "Belgium"
+  },
+  {
+    "id": 840263,
+    "name": "Lukaku, Romelu",
+    "team": "Belgium"
+  },
+  {
+    "id": 840264,
+    "name": "Lukebakio, Dodi",
+    "team": "Belgium"
+  },
+  {
+    "id": 840265,
+    "name": "Mechele, Brandon",
+    "team": "Belgium"
+  },
+  {
+    "id": 840266,
+    "name": "Meunier, Thomas",
+    "team": "Belgium"
+  },
+  {
+    "id": 840267,
+    "name": "Moreira, Diego",
+    "team": "Belgium"
+  },
+  {
+    "id": 840270,
+    "name": "Ngoy, Nathan",
+    "team": "Belgium"
+  },
+  {
+    "id": 840271,
+    "name": "Onana, Amadou",
+    "team": "Belgium"
+  },
+  {
+    "id": 840273,
+    "name": "Penders, Mike",
+    "team": "Belgium"
+  },
+  {
+    "id": 840275,
+    "name": "Raskin, Nicolas",
+    "team": "Belgium"
+  },
+  {
+    "id": 840276,
+    "name": "Saelemaekers, Alexis",
+    "team": "Belgium"
+  },
+  {
+    "id": 840279,
+    "name": "Seys, Joaquin",
+    "team": "Belgium"
+  },
+  {
+    "id": 840282,
+    "name": "Theate, Arthur",
+    "team": "Belgium"
+  },
+  {
+    "id": 840283,
+    "name": "Tielemans, Youri",
+    "team": "Belgium"
+  },
+  {
+    "id": 840284,
+    "name": "Trossard, Leandro",
+    "team": "Belgium"
+  },
+  {
+    "id": 840285,
+    "name": "Vanaken, Hans",
+    "team": "Belgium"
+  },
+  {
+    "id": 840290,
+    "name": "Witsel, Axel",
+    "team": "Belgium"
+  },
+  {
+    "id": 838105,
+    "name": "Camara, Lamine",
+    "team": "Senegal"
+  },
+  {
+    "id": 838106,
+    "name": "Ciss, Pathe",
+    "team": "Senegal"
+  },
+  {
+    "id": 838114,
+    "name": "Diao, Assane",
+    "team": "Senegal"
+  },
+  {
+    "id": 838115,
+    "name": "Diarra, Mouhamadou Habib",
+    "team": "Senegal"
+  },
+  {
+    "id": 838116,
+    "name": "Diatta, Krepin",
+    "team": "Senegal"
+  },
+  {
+    "id": 838117,
+    "name": "Diaw, Mory",
+    "team": "Senegal"
+  },
+  {
+    "id": 838118,
+    "name": "Dieng, Bamba",
+    "team": "Senegal"
+  },
+  {
+    "id": 838119,
+    "name": "Diouf, El Hadji Malick",
+    "team": "Senegal"
+  },
+  {
+    "id": 838121,
+    "name": "Diouf, Yehvann",
+    "team": "Senegal"
+  },
+  {
+    "id": 838124,
+    "name": "Gueye, Idrissa Gana",
+    "team": "Senegal"
+  },
+  {
+    "id": 838126,
+    "name": "Gueye, Pape Alassane",
+    "team": "Senegal"
+  },
+  {
+    "id": 838127,
+    "name": "Jackson, Nicolas",
+    "team": "Senegal"
+  },
+  {
+    "id": 838128,
+    "name": "Jakobs, Ismail",
+    "team": "Senegal"
+  },
+  {
+    "id": 838131,
+    "name": "Koulibaly, Kalidou",
+    "team": "Senegal"
+  },
+  {
+    "id": 838133,
+    "name": "Mane, Sadio",
+    "team": "Senegal"
+  },
+  {
+    "id": 838135,
+    "name": "Mbaye, Ibrahim",
+    "team": "Senegal"
+  },
+  {
+    "id": 838137,
+    "name": "Mendy, Antoine",
+    "team": "Senegal"
+  },
+  {
+    "id": 838138,
+    "name": "Mendy, Edouard",
+    "team": "Senegal"
+  },
+  {
+    "id": 838142,
+    "name": "Ndiaye, Bara Sapoko",
+    "team": "Senegal"
+  },
+  {
+    "id": 838143,
+    "name": "Ndiaye, Cherif",
+    "team": "Senegal"
+  },
+  {
+    "id": 838144,
+    "name": "Ndiaye, Iliman",
+    "team": "Senegal"
+  },
+  {
+    "id": 838145,
+    "name": "Ndiaye, Mbaye",
+    "team": "Senegal"
+  },
+  {
+    "id": 838148,
+    "name": "Niakhate, Moussa",
+    "team": "Senegal"
+  },
+  {
+    "id": 838154,
+    "name": "Sarr, Ababacar",
+    "team": "Senegal"
+  },
+  {
+    "id": 838155,
+    "name": "Sarr, Ismaila",
+    "team": "Senegal"
+  },
+  {
+    "id": 838156,
+    "name": "Sarr, Mamadou (2005)",
+    "team": "Senegal"
+  },
+  {
+    "id": 838157,
+    "name": "Sarr, Pape Matar",
+    "team": "Senegal"
+  },
+  {
+    "id": 838158,
+    "name": "Seck, Abdoulaye",
+    "team": "Senegal"
+  },
+  {
+    "id": 838147,
+    "name": "Ndoye, Cheikh",
+    "team": "Senegal"
+  },
+  {
+    "id": 840293,
+    "name": "Baena, Alex",
+    "team": "Spain"
+  },
+  {
+    "id": 840298,
+    "name": "Cubarsi, Pau",
+    "team": "Spain"
+  },
+  {
+    "id": 840299,
+    "name": "Cucurella Saseta, Marc",
+    "team": "Spain"
+  },
+  {
+    "id": 840302,
+    "name": "Garcia Martret, Eric",
+    "team": "Spain"
+  },
+  {
+    "id": 840307,
+    "name": "Garcia, Joan",
+    "team": "Spain"
+  },
+  {
+    "id": 840309,
+    "name": "Grimaldo Garcia, Alejandro",
+    "team": "Spain"
+  },
+  {
+    "id": 840311,
+    "name": "Hernandez Cascante, Rodrigo",
+    "team": "Spain"
+  },
+  {
+    "id": 840313,
+    "name": "Iglesias Quintas, Borja",
+    "team": "Spain"
+  },
+  {
+    "id": 840314,
+    "name": "Laporte, Aymeric",
+    "team": "Spain"
+  },
+  {
+    "id": 840316,
+    "name": "Llorente, Marcos",
+    "team": "Spain"
+  },
+  {
+    "id": 840318,
+    "name": "Lopez, Pedro",
+    "team": "Spain"
+  },
+  {
+    "id": 840320,
+    "name": "Merino Zazon, Mikel",
+    "team": "Spain"
+  },
+  {
+    "id": 840324,
+    "name": "Munoz Villanueva, Victor",
+    "team": "Spain"
+  },
+  {
+    "id": 840325,
+    "name": "Olmo, Daniel",
+    "team": "Spain"
+  },
+  {
+    "id": 840326,
+    "name": "Oyarzabal Ugarte, Mikel",
+    "team": "Spain"
+  },
+  {
+    "id": 840327,
+    "name": "Paez Gavira, Pablo Martin",
+    "team": "Spain"
+  },
+  {
+    "id": 840329,
+    "name": "Pino, Yeremy",
+    "team": "Spain"
+  },
+  {
+    "id": 840330,
+    "name": "Porro, Pedro",
+    "team": "Spain"
+  },
+  {
+    "id": 840331,
+    "name": "Pubill, Marc",
+    "team": "Spain"
+  },
+  {
+    "id": 840332,
+    "name": "Raya Martin, David",
+    "team": "Spain"
+  },
+  {
+    "id": 840339,
+    "name": "Ruiz Pena, Fabian",
+    "team": "Spain"
+  },
+  {
+    "id": 840341,
+    "name": "Simon Mendibil, Unai",
+    "team": "Spain"
+  },
+  {
+    "id": 840343,
+    "name": "Torres Garcia, Ferran",
+    "team": "Spain"
+  },
+  {
+    "id": 840346,
+    "name": "Williams, Nico",
+    "team": "Spain"
+  },
+  {
+    "id": 840347,
+    "name": "Yamal, Lamine",
+    "team": "Spain"
+  },
+  {
+    "id": 840348,
+    "name": "Zubimendi Ibanez, Martin",
+    "team": "Spain"
+  },
+  {
+    "id": 838358,
+    "name": "Affengruber, David",
+    "team": "Austria"
+  },
+  {
+    "id": 838359,
+    "name": "Arnautovic, Marko",
+    "team": "Austria"
+  },
+  {
+    "id": 838361,
+    "name": "Chukwuemeka, Carney Chibueze",
+    "team": "Austria"
+  },
+  {
+    "id": 838362,
+    "name": "Danso, Kevin",
+    "team": "Austria"
+  },
+  {
+    "id": 838364,
+    "name": "Friedl, Marco (1998)",
+    "team": "Austria"
+  },
+  {
+    "id": 838365,
+    "name": "Gregoritsch, Michael",
+    "team": "Austria"
+  },
+  {
+    "id": 838366,
+    "name": "Grillitsch, Florian",
+    "team": "Austria"
+  },
+  {
+    "id": 838368,
+    "name": "Kalajdzic, Sasa",
+    "team": "Austria"
+  },
+  {
+    "id": 838369,
+    "name": "Laimer, Konrad",
+    "team": "Austria"
+  },
+  {
+    "id": 838371,
+    "name": "Lienhart, Philipp",
+    "team": "Austria"
+  },
+  {
+    "id": 838372,
+    "name": "Ljubicic, Dejan",
+    "team": "Austria"
+  },
+  {
+    "id": 838373,
+    "name": "Mwene, Philipp",
+    "team": "Austria"
+  },
+  {
+    "id": 838375,
+    "name": "Olatukunbo Alaba, David",
+    "team": "Austria"
+  },
+  {
+    "id": 838376,
+    "name": "Pentz, Patrick",
+    "team": "Austria"
+  },
+  {
+    "id": 838378,
+    "name": "Posch, Stefan",
+    "team": "Austria"
+  },
+  {
+    "id": 838379,
+    "name": "Prass, Alexander",
+    "team": "Austria"
+  },
+  {
+    "id": 838381,
+    "name": "Sabitzer, Marcel",
+    "team": "Austria"
+  },
+  {
+    "id": 838382,
+    "name": "Schlager, Alexander",
+    "team": "Austria"
+  },
+  {
+    "id": 838383,
+    "name": "Schlager, Xaver",
+    "team": "Austria"
+  },
+  {
+    "id": 838384,
+    "name": "Schmid, Romano",
+    "team": "Austria"
+  },
+  {
+    "id": 838385,
+    "name": "Schopf, Alessandro",
+    "team": "Austria"
+  },
+  {
+    "id": 838386,
+    "name": "Seiwald, Nicolas",
+    "team": "Austria"
+  },
+  {
+    "id": 838387,
+    "name": "Svoboda, Michael",
+    "team": "Austria"
+  },
+  {
+    "id": 838388,
+    "name": "Wanner, Paul",
+    "team": "Austria"
+  },
+  {
+    "id": 838390,
+    "name": "Wiegele, Florian",
+    "team": "Austria"
+  },
+  {
+    "id": 838391,
+    "name": "Wimmer, Patrick",
+    "team": "Austria"
+  },
+  {
+    "id": 840551,
+    "name": "Amenda, Aurele",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840555,
+    "name": "Comart, Eray",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840563,
+    "name": "Jaquez, Luca",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840564,
+    "name": "Jashari, Ardon",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840565,
+    "name": "Keller, Marvin",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840573,
+    "name": "Muheim, Miro",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840574,
+    "name": "Mvogo Nganoma, Yvon Landry",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840576,
+    "name": "Okafor, Noah",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840578,
+    "name": "Rieder, Fabian",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840584,
+    "name": "Sow, Djibril",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840586,
+    "name": "Widmer, Silvan",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840570,
+    "name": "Manzambi, Johan",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840560,
+    "name": "Freuler, Remo",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840556,
+    "name": "Elvedi, Nico",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840588,
+    "name": "Zakaria Lako Lado, Denis Lemi",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840549,
+    "name": "Akanji, Manuel",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840557,
+    "name": "Embolo, Breel Donald",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840585,
+    "name": "Vargas, Ruben",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840587,
+    "name": "Xhaka, Granit",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840566,
+    "name": "Kobel, Gregor",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840579,
+    "name": "Rodriguez, Ricardo",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840575,
+    "name": "Ndoye, Dan",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840550,
+    "name": "Amdouni, Zeki",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840558,
+    "name": "Fassnacht, Christian",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840548,
+    "name": "Aebischer, Michel",
+    "team": "Switzerland"
+  },
+  {
+    "id": 840562,
+    "name": "Itten, Cedric",
+    "team": "Switzerland"
+  },
+  {
+    "id": 838522,
+    "name": "Abdennour Iheb Belhocini",
+    "team": "Algeria"
+  },
+  {
+    "id": 838523,
+    "name": "Ait-Nouri, Rayan",
+    "team": "Algeria"
+  },
+  {
+    "id": 838524,
+    "name": "Akhrib, Lahlou",
+    "team": "Algeria"
+  },
+  {
+    "id": 838526,
+    "name": "Amoura, Mohamed",
+    "team": "Algeria"
+  },
+  {
+    "id": 838527,
+    "name": "Aouar, Houssem",
+    "team": "Algeria"
+  },
+  {
+    "id": 838534,
+    "name": "Bekkour, Abderrahmane",
+    "team": "Algeria"
+  },
+  {
+    "id": 838539,
+    "name": "Ben Ahmed Kohili",
+    "team": "Algeria"
+  },
+  {
+    "id": 838540,
+    "name": "Benbouali, Ahmed Nadir",
+    "team": "Algeria"
+  },
+  {
+    "id": 838548,
+    "name": "Bentaleb, Nabil",
+    "team": "Algeria"
+  },
+  {
+    "id": 838554,
+    "name": "Bouhalfaya, Zakaria",
+    "team": "Algeria"
+  },
+  {
+    "id": 838555,
+    "name": "Boukerchaoui, Bilal",
+    "team": "Algeria"
+  },
+  {
+    "id": 838557,
+    "name": "Bounedjah, Baghdad",
+    "team": "Algeria"
+  },
+  {
+    "id": 838558,
+    "name": "Bousseder, Tarek",
+    "team": "Algeria"
+  },
+  {
+    "id": 838560,
+    "name": "Chaal, Farid",
+    "team": "Algeria"
+  },
+  {
+    "id": 838562,
+    "name": "Chergui, Samir",
+    "team": "Algeria"
+  },
+  {
+    "id": 838563,
+    "name": "Chetti, Ilyes",
+    "team": "Algeria"
+  },
+  {
+    "id": 838567,
+    "name": "Draoui, Zakaria",
+    "team": "Algeria"
+  },
+  {
+    "id": 838569,
+    "name": "Ghezala, Ayoub",
+    "team": "Algeria"
+  },
+  {
+    "id": 838580,
+    "name": "Mandi, Aissa",
+    "team": "Algeria"
+  },
+  {
+    "id": 838583,
+    "name": "Maza, Ibrahim",
+    "team": "Algeria"
+  },
+  {
+    "id": 838584,
+    "name": "Medjadel, Abderrahmane",
+    "team": "Algeria"
+  },
+  {
+    "id": 838585,
+    "name": "Merbah, Messala",
+    "team": "Algeria"
+  },
+  {
+    "id": 838596,
+    "name": "Radouani, Saadi",
+    "team": "Algeria"
+  },
+  {
+    "id": 838599,
+    "name": "Titraoui, Yacine",
+    "team": "Algeria"
+  },
+  {
+    "id": 838603,
+    "name": "Zerrouki, Ramiz Larbi",
+    "team": "Algeria"
+  },
+  {
+    "id": 838604,
+    "name": "Zidane, Luca",
+    "team": "Algeria"
+  },
+  {
+    "id": 838541,
+    "name": "Benbout, Oussama",
+    "team": "Algeria"
+  },
+  {
+    "id": 838579,
+    "name": "Mahrez, Riyad",
+    "team": "Algeria"
+  },
+  {
+    "id": 838561,
+    "name": "Chaibi, Fares",
+    "team": "Algeria"
+  },
+  {
+    "id": 838568,
+    "name": "Ghedjemis, Fares",
+    "team": "Algeria"
+  },
+  {
+    "id": 838547,
+    "name": "Bensebaini, Rami",
+    "team": "Algeria"
+  },
+  {
+    "id": 838573,
+    "name": "Hadj-Moussa, Anis",
+    "team": "Algeria"
+  },
+  {
+    "id": 838570,
+    "name": "Gouiri, Amine",
+    "team": "Algeria"
+  },
+  {
+    "id": 838556,
+    "name": "Boulbina, Adil",
+    "team": "Algeria"
+  },
+  {
+    "id": 838538,
+    "name": "Belghali, Rafik",
+    "team": "Algeria"
+  },
+  {
+    "id": 838574,
+    "name": "Hadjam, Jaouen",
+    "team": "Algeria"
+  },
+  {
+    "id": 838552,
+    "name": "Boudaoui, Hichem",
+    "team": "Algeria"
+  },
+  {
+    "id": 838589,
+    "name": "Mohamed Amine Tougai",
+    "team": "Algeria"
+  },
+  {
+    "id": 838520,
+    "name": "Abada, Achref",
+    "team": "Algeria"
+  },
+  {
+    "id": 838582,
+    "name": "Mastil, Melvin",
+    "team": "Algeria"
+  },
+  {
+    "id": 838535,
+    "name": "Belaid, Zineddine",
+    "team": "Algeria"
+  },
+  {
+    "id": 839455,
+    "name": "Acevedo, Carlos",
+    "team": "Mexico"
+  },
+  {
+    "id": 839457,
+    "name": "Alvarado Hernandez, Roberto Carlos",
+    "team": "Mexico"
+  },
+  {
+    "id": 839459,
+    "name": "Alvarez Velazquez, Edson Omar",
+    "team": "Mexico"
+  },
+  {
+    "id": 839470,
+    "name": "Chavez Magallon, Luis Gerardo",
+    "team": "Mexico"
+  },
+  {
+    "id": 839471,
+    "name": "Chavez, Mateo",
+    "team": "Mexico"
+  },
+  {
+    "id": 839474,
+    "name": "Fidalgo Fernandez, Alvaro",
+    "team": "Mexico"
+  },
+  {
+    "id": 839476,
+    "name": "Gallardo Vasconcelos, Jesus Daniel",
+    "team": "Mexico"
+  },
+  {
+    "id": 839479,
+    "name": "Gimenez, Santiago Tomas",
+    "team": "Mexico"
+  },
+  {
+    "id": 839482,
+    "name": "Gonzalez, Armando",
+    "team": "Mexico"
+  },
+  {
+    "id": 839484,
+    "name": "Gutierrez Torres, Alexis Hazael",
+    "team": "Mexico"
+  },
+  {
+    "id": 839485,
+    "name": "Gutierrez, Brian",
+    "team": "Mexico"
+  },
+  {
+    "id": 839487,
+    "name": "Huerta Valera, Cesar Saul",
+    "team": "Mexico"
+  },
+  {
+    "id": 839489,
+    "name": "Jimenez Rodriguez, Raul Alonso",
+    "team": "Mexico"
+  },
+  {
+    "id": 839493,
+    "name": "Lira, Erik",
+    "team": "Mexico"
+  },
+  {
+    "id": 839497,
+    "name": "Martinez Ayala, Guillermo",
+    "team": "Mexico"
+  },
+  {
+    "id": 839500,
+    "name": "Montes Castro, Cesar Jasib",
+    "team": "Mexico"
+  },
+  {
+    "id": 839502,
+    "name": "Mora Zambrano, Gilberto Rafael",
+    "team": "Mexico"
+  },
+  {
+    "id": 839503,
+    "name": "Ochoa Magana, Francisco Guillermo",
+    "team": "Mexico"
+  },
+  {
+    "id": 839506,
+    "name": "Pineda Alvarado, Orbelin",
+    "team": "Mexico"
+  },
+  {
+    "id": 839507,
+    "name": "Quinones Quinones, Julian Andres",
+    "team": "Mexico"
+  },
+  {
+    "id": 839508,
+    "name": "Rangel, Raul",
+    "team": "Mexico"
+  },
+  {
+    "id": 839510,
+    "name": "Reyes, Israel",
+    "team": "Mexico"
+  },
+  {
+    "id": 839513,
+    "name": "Romo Barron, Luis Francisco",
+    "team": "Mexico"
+  },
+  {
+    "id": 839518,
+    "name": "Sanchez Ramos, Jorge Eduardo",
+    "team": "Mexico"
+  },
+  {
+    "id": 839521,
+    "name": "Vargas, Obed",
+    "team": "Mexico"
+  },
+  {
+    "id": 839522,
+    "name": "Vasquez Ibarra, Johan Felipe",
+    "team": "Mexico"
+  },
+  {
+    "id": 839523,
+    "name": "Vega Rojas, Ernesto Alexis",
+    "team": "Mexico"
+  },
+  {
+    "id": 837831,
+    "name": "Alcivar Macias, Jordy Jose",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837833,
+    "name": "Angulo, Nilson",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837834,
+    "name": "Arevalo Mera, Jeremy Alberto",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837837,
+    "name": "Caicedo Corozo, Moises Isaac",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837838,
+    "name": "Caicedo Medina, Jordy Josue",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837840,
+    "name": "Castillo, Denil",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837845,
+    "name": "Estupinan Tenorio, Pervis Josue",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837846,
+    "name": "Franco Palma, Alan Steven",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837847,
+    "name": "Galindez, Hernan",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837849,
+    "name": "Hincapie Reyna, Piero Martin",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837852,
+    "name": "Medina Ortiz, Yaimar Abel",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837856,
+    "name": "Micolta Arroyo, Norman Andres",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837857,
+    "name": "Minda Garcia, Alan Steve",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837859,
+    "name": "Ordonez Guerrero, Joel Leandro",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837860,
+    "name": "Pacho Tenorio, William Joel",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837861,
+    "name": "Paez Andrade, Ray Kendry",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837862,
+    "name": "Plata Jimenez, Gonzalo Jordy",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837863,
+    "name": "Porozo Vernaza, Jackson Gabriel",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837865,
+    "name": "Preciado Quinonez, Angelo Smit",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837867,
+    "name": "Ramirez Preciado, Wellington Moises",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837870,
+    "name": "Rodriguez, Kevin",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837872,
+    "name": "Torres Caicedo, Felix Eduardo",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837873,
+    "name": "Valencia Bajana, Anthony Lenin",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837874,
+    "name": "Valencia, Enner",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837875,
+    "name": "Valle Bustamante, Gonzalo Roberto",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837877,
+    "name": "Vite Uca, Pedro Jeampierre",
+    "team": "Ecuador"
+  },
+  {
+    "id": 837879,
+    "name": "Zamora, John Yeboah",
+    "team": "Ecuador"
+  },
+  {
+    "id": 839587,
+    "name": "Araujo, Tomas",
+    "team": "Portugal"
+  },
+  {
+    "id": 839588,
+    "name": "Cabral Semedo, Nelson",
+    "team": "Portugal"
+  },
+  {
+    "id": 839589,
+    "name": "Cancelo, Joao",
+    "team": "Portugal"
+  },
+  {
+    "id": 839592,
+    "name": "Conceicao, Francisco",
+    "team": "Portugal"
+  },
+  {
+    "id": 839593,
+    "name": "Costa, Diogo",
+    "team": "Portugal"
+  },
+  {
+    "id": 839594,
+    "name": "Costa, Samu",
+    "team": "Portugal"
+  },
+  {
+    "id": 839595,
+    "name": "Dalot, Diogo",
+    "team": "Portugal"
+  },
+  {
+    "id": 839596,
+    "name": "Dantas da Silva, Rui Tiago",
+    "team": "Portugal"
+  },
+  {
+    "id": 839597,
+    "name": "Dias, Ruben",
+    "team": "Portugal"
+  },
+  {
+    "id": 839598,
+    "name": "Felix, Joao",
+    "team": "Portugal"
+  },
+  {
+    "id": 839599,
+    "name": "Fernandes, Bruno",
+    "team": "Portugal"
+  },
+  {
+    "id": 839602,
+    "name": "Ganchinho Guedes, Goncalo Manuel",
+    "team": "Portugal"
+  },
+  {
+    "id": 839604,
+    "name": "Inacio, Goncalo",
+    "team": "Portugal"
+  },
+  {
+    "id": 839605,
+    "name": "Leao, Rafael",
+    "team": "Portugal"
+  },
+  {
+    "id": 839607,
+    "name": "Machado Ferreira, Vitor",
+    "team": "Portugal"
+  },
+  {
+    "id": 839608,
+    "name": "Mendes, Nuno",
+    "team": "Portugal"
+  },
+  {
+    "id": 839610,
+    "name": "Neto, Pedro",
+    "team": "Portugal"
+  },
+  {
+    "id": 839611,
+    "name": "Neves, Joao",
+    "team": "Portugal"
+  },
+  {
+    "id": 839612,
+    "name": "Neves, Ruben",
+    "team": "Portugal"
+  },
+  {
+    "id": 839613,
+    "name": "Nunes, Matheus",
+    "team": "Portugal"
+  },
+  {
+    "id": 839617,
+    "name": "Ramos, Goncalo",
+    "team": "Portugal"
+  },
+  {
+    "id": 839618,
+    "name": "Ronaldo, Cristiano",
+    "team": "Portugal"
+  },
+  {
+    "id": 839619,
+    "name": "Sa, Jose",
+    "team": "Portugal"
+  },
+  {
+    "id": 839621,
+    "name": "Silva, Bernardo",
+    "team": "Portugal"
+  },
+  {
+    "id": 839624,
+    "name": "Trincao, Francisco Antonio",
+    "team": "Portugal"
+  },
+  {
+    "id": 839626,
+    "name": "Veiga, Renato",
+    "team": "Portugal"
+  },
+  {
+    "id": 838442,
+    "name": "Baturina, Martin",
+    "team": "Croatia"
+  },
+  {
+    "id": 838444,
+    "name": "Budimir, Ante",
+    "team": "Croatia"
+  },
+  {
+    "id": 838445,
+    "name": "Caleta-Car, Duje",
+    "team": "Croatia"
+  },
+  {
+    "id": 838446,
+    "name": "Erlic, Martin",
+    "team": "Croatia"
+  },
+  {
+    "id": 838447,
+    "name": "Fruk, Toni",
+    "team": "Croatia"
+  },
+  {
+    "id": 838448,
+    "name": "Gvardiol, Josko",
+    "team": "Croatia"
+  },
+  {
+    "id": 838451,
+    "name": "Jakic, Kristijan",
+    "team": "Croatia"
+  },
+  {
+    "id": 838453,
+    "name": "Kotarski, Dominik",
+    "team": "Croatia"
+  },
+  {
+    "id": 838454,
+    "name": "Kovacic, Mateo",
+    "team": "Croatia"
+  },
+  {
+    "id": 838455,
+    "name": "Kramaric, Andrej",
+    "team": "Croatia"
+  },
+  {
+    "id": 838457,
+    "name": "Livakovic, Dominik",
+    "team": "Croatia"
+  },
+  {
+    "id": 838459,
+    "name": "Matanovic, Igor",
+    "team": "Croatia"
+  },
+  {
+    "id": 838460,
+    "name": "Modric, Luka",
+    "team": "Croatia"
+  },
+  {
+    "id": 838461,
+    "name": "Moro, Nikola",
+    "team": "Croatia"
+  },
+  {
+    "id": 838462,
+    "name": "Musa, Petar",
+    "team": "Croatia"
+  },
+  {
+    "id": 838464,
+    "name": "Pandur, Ivor",
+    "team": "Croatia"
+  },
+  {
+    "id": 838465,
+    "name": "Pasalic, Marco",
+    "team": "Croatia"
+  },
+  {
+    "id": 838466,
+    "name": "Pasalic, Mario",
+    "team": "Croatia"
+  },
+  {
+    "id": 838467,
+    "name": "Perisic, Ivan",
+    "team": "Croatia"
+  },
+  {
+    "id": 838468,
+    "name": "Pongracic, Marin",
+    "team": "Croatia"
+  },
+  {
+    "id": 838471,
+    "name": "Stanisic, Josip",
+    "team": "Croatia"
+  },
+  {
+    "id": 838472,
+    "name": "Sucic, Luka",
+    "team": "Croatia"
+  },
+  {
+    "id": 838473,
+    "name": "Sucic, Petar",
+    "team": "Croatia"
+  },
+  {
+    "id": 838474,
+    "name": "Sutalo, Josip",
+    "team": "Croatia"
+  },
+  {
+    "id": 838475,
+    "name": "Vlasic, Nikola",
+    "team": "Croatia"
+  },
+  {
+    "id": 838476,
+    "name": "Vuskovic, Luka",
+    "team": "Croatia"
+  },
+  {
+    "id": 840421,
+    "name": "Anderson, Elliot",
+    "team": "England"
+  },
+  {
+    "id": 840423,
+    "name": "Bellingham, Jude",
+    "team": "England"
+  },
+  {
+    "id": 840425,
+    "name": "Burn, Dan",
+    "team": "England"
+  },
+  {
+    "id": 840427,
+    "name": "Chalobah, Trevoh",
+    "team": "England"
+  },
+  {
+    "id": 840430,
+    "name": "Eze, Eberechi",
+    "team": "England"
+  },
+  {
+    "id": 840434,
+    "name": "Gordon, Anthony",
+    "team": "England"
+  },
+  {
+    "id": 840436,
+    "name": "Guehi, Marc",
+    "team": "England"
+  },
+  {
+    "id": 840438,
+    "name": "Henderson, Dean",
+    "team": "England"
+  },
+  {
+    "id": 840439,
+    "name": "Henderson, Jordan",
+    "team": "England"
+  },
+  {
+    "id": 840440,
+    "name": "James, Reece (1999)",
+    "team": "England"
+  },
+  {
+    "id": 840442,
+    "name": "Kane, Harry",
+    "team": "England"
+  },
+  {
+    "id": 840444,
+    "name": "Konsa Ngoyo, Ezri",
+    "team": "England"
+  },
+  {
+    "id": 840449,
+    "name": "Madueke, Chukwunonso",
+    "team": "England"
+  },
+  {
+    "id": 840451,
+    "name": "Mainoo, Kobbie",
+    "team": "England"
+  },
+  {
+    "id": 840455,
+    "name": "O'Reilly, Nico",
+    "team": "England"
+  },
+  {
+    "id": 840458,
+    "name": "Pickford, Jordan",
+    "team": "England"
+  },
+  {
+    "id": 840459,
+    "name": "Quansah, Jarell",
+    "team": "England"
+  },
+  {
+    "id": 840461,
+    "name": "Rashford, Marcus",
+    "team": "England"
+  },
+  {
+    "id": 840462,
+    "name": "Rice, Declan",
+    "team": "England"
+  },
+  {
+    "id": 840463,
+    "name": "Rogers, Morgan",
+    "team": "England"
+  },
+  {
+    "id": 840464,
+    "name": "Saka, Bukayo",
+    "team": "England"
+  },
+  {
+    "id": 840467,
+    "name": "Spence, Djed",
+    "team": "England"
+  },
+  {
+    "id": 840469,
+    "name": "Stones, John",
+    "team": "England"
+  },
+  {
+    "id": 840471,
+    "name": "Toney, Ivan",
+    "team": "England"
+  },
+  {
+    "id": 840472,
+    "name": "Trafford, James",
+    "team": "England"
+  },
+  {
+    "id": 840473,
+    "name": "Watkins, Ollie",
+    "team": "England"
+  },
+  {
+    "id": 837961,
+    "name": "Amongo, Basiala",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837962,
+    "name": "Bakambu, Cedric",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837966,
+    "name": "Banza, Simon Bokote",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837967,
+    "name": "Baso, Kazema",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837969,
+    "name": "Batubinsika, Dylan",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837971,
+    "name": "Bisamuna, Mbiyeye",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837972,
+    "name": "Boka, Chadrack Issaka",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837974,
+    "name": "Bongonda, Theo",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837978,
+    "name": "Cipenga, Brian",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837982,
+    "name": "Efonge, Brudel",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837983,
+    "name": "Elia, Meschak",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837984,
+    "name": "Epolo, Matthieu",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837986,
+    "name": "Fayulu, Timothy",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837987,
+    "name": "Horso Mwaku, Malanga",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837993,
+    "name": "Kakuta, Gael",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837994,
+    "name": "Kalala Mayele, Fiston",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837996,
+    "name": "Kalulu Kyatengwa, Gedeon",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837997,
+    "name": "Kapuadi, Steve Nkanu",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837998,
+    "name": "Katumbwe, Mokonzi",
+    "team": "Congo DR"
+  },
+  {
+    "id": 837999,
+    "name": "Kayembe Ditu, Joris",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838000,
+    "name": "Kayembe, Edo",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838001,
+    "name": "Kebano, Neeskens",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838002,
+    "name": "Kiassumbua, Joel",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838004,
+    "name": "Kinzumbi, Philippe Beni",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838009,
+    "name": "Lomboto, Herve Nguemba",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838010,
+    "name": "Lunanga, Jackson",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838011,
+    "name": "Lusamba, Arnaud",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838012,
+    "name": "Luzolo Sita, Ernest",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838014,
+    "name": "Malango Ngita, Ben",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838015,
+    "name": "Mangulu Mbemba, Chancel",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838016,
+    "name": "Masuaku, Arthur",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838017,
+    "name": "Matobo Mubalu, Ibrahim",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838019,
+    "name": "Mboma Kinda, Jeancy",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838020,
+    "name": "Mbuku, Nathanael",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838022,
+    "name": "Mika, Miche",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838023,
+    "name": "Mondeko Zatu, Kevin",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838024,
+    "name": "Moutoussamy, Samuel",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838025,
+    "name": "Mpasi-Nzau, Lionel",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838028,
+    "name": "Mukau, Ngal'ayel",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838030,
+    "name": "Mukoko Amale, Dieumerci",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838031,
+    "name": "Mukoko Tonombe, Serge",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838036,
+    "name": "Ndombele Lutaladio, Osee",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838038,
+    "name": "Ngalamulume, Boaz",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838039,
+    "name": "Ngoma Luamba, Fabrice",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838042,
+    "name": "Nyembo Ntumba, Lise",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838043,
+    "name": "Pickel, Charles",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838044,
+    "name": "Sadiki, Noah",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838046,
+    "name": "Talasi, Tonny",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838047,
+    "name": "Tshibola, Aaron",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838048,
+    "name": "Tuanzebe, Axel",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838051,
+    "name": "Wan-Bissaka, Aaron",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838052,
+    "name": "Wissa, Yoane",
+    "team": "Congo DR"
+  },
+  {
+    "id": 838054,
+    "name": "Zola Kiaku, Arsene",
+    "team": "Congo DR"
+  },
+  {
+    "id": 839028,
+    "name": "Ahmed, Ali",
+    "team": "Canada"
+  },
+  {
+    "id": 839029,
+    "name": "Antunes Eustaquio, Stephen",
+    "team": "Canada"
+  },
+  {
+    "id": 839034,
+    "name": "Buchanan, Tajon",
+    "team": "Canada"
+  },
+  {
+    "id": 839036,
+    "name": "Choiniere, Mathieu",
+    "team": "Canada"
+  },
+  {
+    "id": 839038,
+    "name": "Cornelius, Derek",
+    "team": "Canada"
+  },
+  {
+    "id": 839039,
+    "name": "Crepeau, Maxime",
+    "team": "Canada"
+  },
+  {
+    "id": 839040,
+    "name": "David, Jonathan",
+    "team": "Canada"
+  },
+  {
+    "id": 839041,
+    "name": "David, Promise",
+    "team": "Canada"
+  },
+  {
+    "id": 839042,
+    "name": "Davies, Alphonso",
+    "team": "Canada"
+  },
+  {
+    "id": 839043,
+    "name": "Dayne St. Clair",
+    "team": "Canada"
+  },
+  {
+    "id": 839044,
+    "name": "De Fougerolles, Luc",
+    "team": "Canada"
+  },
+  {
+    "id": 839045,
+    "name": "Flores, Marcelo",
+    "team": "Canada"
+  },
+  {
+    "id": 839048,
+    "name": "Goodman, Owen",
+    "team": "Canada"
+  },
+  {
+    "id": 839054,
+    "name": "Johnston, Alistair",
+    "team": "Canada"
+  },
+  {
+    "id": 839055,
+    "name": "Jones, Alfie",
+    "team": "Canada"
+  },
+  {
+    "id": 839059,
+    "name": "Kone, Ismael",
+    "team": "Canada"
+  },
+  {
+    "id": 839060,
+    "name": "Larin, Cyle",
+    "team": "Canada"
+  },
+  {
+    "id": 839061,
+    "name": "Laryea, Richmond Mamah",
+    "team": "Canada"
+  },
+  {
+    "id": 839063,
+    "name": "Lumpungu, Moise",
+    "team": "Canada"
+  },
+  {
+    "id": 839067,
+    "name": "Millar, Liam",
+    "team": "Canada"
+  },
+  {
+    "id": 839070,
+    "name": "Oluwaseyi, Tani",
+    "team": "Canada"
+  },
+  {
+    "id": 839071,
+    "name": "Osorio, Jonathan",
+    "team": "Canada"
+  },
+  {
+    "id": 839077,
+    "name": "Saliba, Nathan-Dylan",
+    "team": "Canada"
+  },
+  {
+    "id": 839078,
+    "name": "Shaffelburg, Jacob",
+    "team": "Canada"
+  },
+  {
+    "id": 839079,
+    "name": "Sigur, Niko",
+    "team": "Canada"
+  },
+  {
+    "id": 839081,
+    "name": "Waterman, Joel",
+    "team": "Canada"
+  },
+  {
+    "id": 839069,
+    "name": "Nelson, Jayden",
+    "team": "Canada"
+  },
+  {
+    "id": 840128,
+    "name": "Amaimouni, Ayoube",
+    "team": "Morocco"
+  },
+  {
+    "id": 840129,
+    "name": "Amrabat, Sofyan",
+    "team": "Morocco"
+  },
+  {
+    "id": 840132,
+    "name": "Assal, Abdelhak",
+    "team": "Morocco"
+  },
+  {
+    "id": 840136,
+    "name": "Baouf, Ismael",
+    "team": "Morocco"
+  },
+  {
+    "id": 840138,
+    "name": "Belammari, Youssef",
+    "team": "Morocco"
+  },
+  {
+    "id": 840144,
+    "name": "Bouaddi, Ayyoub",
+    "team": "Morocco"
+  },
+  {
+    "id": 840151,
+    "name": "Bounou, Yassine",
+    "team": "Morocco"
+  },
+  {
+    "id": 840152,
+    "name": "Chibi, Mohamed",
+    "team": "Morocco"
+  },
+  {
+    "id": 840155,
+    "name": "Diaz, Brahim",
+    "team": "Morocco"
+  },
+  {
+    "id": 840156,
+    "name": "Diop, Issa",
+    "team": "Morocco"
+  },
+  {
+    "id": 840158,
+    "name": "El Aynaoui, Neil",
+    "team": "Morocco"
+  },
+  {
+    "id": 840159,
+    "name": "El Kaabi, Ayoub",
+    "team": "Morocco"
+  },
+  {
+    "id": 840160,
+    "name": "El Kajoui, Munir",
+    "team": "Morocco"
+  },
+  {
+    "id": 840162,
+    "name": "El Khannouss, Bilal",
+    "team": "Morocco"
+  },
+  {
+    "id": 840166,
+    "name": "El Mourabet, Samir",
+    "team": "Morocco"
+  },
+  {
+    "id": 840167,
+    "name": "El Ouahdi, Zakaria",
+    "team": "Morocco"
+  },
+  {
+    "id": 840177,
+    "name": "Hakimi, Achraf",
+    "team": "Morocco"
+  },
+  {
+    "id": 840178,
+    "name": "Halhal, Redouane",
+    "team": "Morocco"
+  },
+  {
+    "id": 840182,
+    "name": "Harrar, Mehdi",
+    "team": "Morocco"
+  },
+  {
+    "id": 840193,
+    "name": "Mazraoui, Noussair",
+    "team": "Morocco"
+  },
+  {
+    "id": 840196,
+    "name": "Mohamed Rabie Hrimat",
+    "team": "Morocco"
+  },
+  {
+    "id": 840200,
+    "name": "Ounahi, Azzedine",
+    "team": "Morocco"
+  },
+  {
+    "id": 840201,
+    "name": "Rahimi, Soufiane",
+    "team": "Morocco"
+  },
+  {
+    "id": 840202,
+    "name": "Riad, Chadi",
+    "team": "Morocco"
+  },
+  {
+    "id": 840204,
+    "name": "Saadane, Marwane",
+    "team": "Morocco"
+  },
+  {
+    "id": 840205,
+    "name": "Saibari, Ismael",
+    "team": "Morocco"
+  },
+  {
+    "id": 840207,
+    "name": "Salah-Eddine, Anass",
+    "team": "Morocco"
+  },
+  {
+    "id": 840209,
+    "name": "Sbai, Amine",
+    "team": "Morocco"
+  },
+  {
+    "id": 840213,
+    "name": "Tagnaouti, Ahmed Reda",
+    "team": "Morocco"
+  },
+  {
+    "id": 840214,
+    "name": "Talbi, Chemsdine",
+    "team": "Morocco"
+  },
+  {
+    "id": 840217,
+    "name": "Tissoudali, Tarik",
+    "team": "Morocco"
+  },
+  {
+    "id": 840218,
+    "name": "Yassine, Gessime",
+    "team": "Morocco"
+  },
+  {
+    "id": 840222,
+    "name": "Ziyech, Hakim",
+    "team": "Morocco"
+  },
+  {
+    "id": 839325,
+    "name": "Aoas Correa Marquinhos, Marcos",
+    "team": "Brazil"
+  },
+  {
+    "id": 839328,
+    "name": "Becker, Alisson Ramses",
+    "team": "Brazil"
+  },
+  {
+    "id": 839330,
+    "name": "Carneiro Da Cunha, Matheus Santos",
+    "team": "Brazil"
+  },
+  {
+    "id": 839331,
+    "name": "Casimiro, Carlos Henrique",
+    "team": "Brazil"
+  },
+  {
+    "id": 839335,
+    "name": "Da Silva, Luiz Danilo",
+    "team": "Brazil"
+  },
+  {
+    "id": 839337,
+    "name": "Dias Belloli, Raphael",
+    "team": "Brazil"
+  },
+  {
+    "id": 839339,
+    "name": "Franca Lima, Wesley Vinicius",
+    "team": "Brazil"
+  },
+  {
+    "id": 839343,
+    "name": "Guimaraes, Bruno",
+    "team": "Brazil"
+  },
+  {
+    "id": 839344,
+    "name": "Henrique, Luiz",
+    "team": "Brazil"
+  },
+  {
+    "id": 839346,
+    "name": "Ibanez da Silva, Roger",
+    "team": "Brazil"
+  },
+  {
+    "id": 839353,
+    "name": "Lobo Silva, Alex Sandro",
+    "team": "Brazil"
+  },
+  {
+    "id": 839354,
+    "name": "Lourenco da Silva, Ederson Jose dos Santos",
+    "team": "Brazil"
+  },
+  {
+    "id": 839357,
+    "name": "Martinelli Silva, Gabriel Teodoro",
+    "team": "Brazil"
+  },
+  {
+    "id": 839361,
+    "name": "Moreira de Sousa, Endrick Felipe",
+    "team": "Brazil"
+  },
+  {
+    "id": 839366,
+    "name": "Paixao de Oliveira Junior, Vinicius Jose",
+    "team": "Brazil"
+  },
+  {
+    "id": 839367,
+    "name": "Paqueta, Lucas",
+    "team": "Brazil"
+  },
+  {
+    "id": 839368,
+    "name": "Pereira da Silva, Weverton",
+    "team": "Brazil"
+  },
+  {
+    "id": 839370,
+    "name": "Pereira, Leonardo",
+    "team": "Brazil"
+  },
+  {
+    "id": 839373,
+    "name": "Santana de Moraes, Ederson",
+    "team": "Brazil"
+  },
+  {
+    "id": 839374,
+    "name": "Silva Nascimento, Gleison Bremer",
+    "team": "Brazil"
+  },
+  {
+    "id": 839376,
+    "name": "Simplicio Rocha, Rayan Vitor",
+    "team": "Brazil"
+  },
+  {
+    "id": 839379,
+    "name": "Tavares, Fabio Henrique",
+    "team": "Brazil"
+  },
+  {
+    "id": 839380,
+    "name": "Thiago, Igor",
+    "team": "Brazil"
+  },
+  {
+    "id": 839383,
+    "name": "da Silva Santos Junior, Neymar",
+    "team": "Brazil"
+  },
+  {
+    "id": 839393,
+    "name": "dos Santos Justino de Melo, Douglas",
+    "team": "Brazil"
+  },
+  {
+    "id": 839394,
+    "name": "dos Santos Magalhaes, Gabriel",
+    "team": "Brazil"
+  },
+  {
+    "id": 839396,
+    "name": "dos Santos de Oliveira, Danilo",
+    "team": "Brazil"
+  },
+  {
+    "id": 839192,
+    "name": "Alderete, Omar",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839193,
+    "name": "Almiron, Miguel",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839194,
+    "name": "Alonso, Junior",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839195,
+    "name": "Arce, Alex",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839197,
+    "name": "Avalos, Gabriel",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839198,
+    "name": "Balbuena, Fabian",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839202,
+    "name": "Bobadilla, Damian",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839203,
+    "name": "Caballero, Gustavo",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839204,
+    "name": "Caceres, Juan Jose",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839206,
+    "name": "Canale, Jose",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839208,
+    "name": "Cubas, Andres",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839212,
+    "name": "Enciso, Julio",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839214,
+    "name": "Fernandez Torres, Roberto Junior",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839216,
+    "name": "Galarza, Matias",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839218,
+    "name": "Gill, Orlando",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839221,
+    "name": "Gomez, Diego",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839222,
+    "name": "Gomez, Gustavo",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839228,
+    "name": "Magalhaes Prado, Mauricio",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839229,
+    "name": "Maidana, Alexandro",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839234,
+    "name": "Ojeda, Braian",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839236,
+    "name": "Olveira, Gaston",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839239,
+    "name": "Pitta, Isidro",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839243,
+    "name": "Romero Gamarra, Alejandro",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839248,
+    "name": "Sanabria, Antonio",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839250,
+    "name": "Sosa, Ramon",
+    "team": "Paraguay"
+  },
+  {
+    "id": 839251,
+    "name": "Velazquez Ramos, Victor Gustavo",
+    "team": "Paraguay"
+  }
+]

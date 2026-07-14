@@ -5,7 +5,8 @@ export async function GET(request: Request) {
   const tokens = sessionTokens(request);
   return Response.json({
     network: "devnet",
-    connected: Boolean(tokens.jwt && tokens.apiToken),
+    connected: Boolean(tokens.apiToken),
+    guestSession: Boolean(tokens.jwt),
     programId: TXLINE.programId,
     rpc: TXLINE.rpc,
     coverage: {
@@ -28,4 +29,3 @@ export async function GET(request: Request) {
     },
   });
 }
-

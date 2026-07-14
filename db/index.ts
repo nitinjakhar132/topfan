@@ -17,8 +17,13 @@ let initialization: Promise<void> | null = null;
 export async function ensureArchiveDatabase() {
   if (initialization) return initialization;
   initialization = (async () => {
+    console.log("[DB DEBUG] ensureArchiveDatabase: starting initialization...");
     const d1 = env.DB;
-    if (!d1) throw new Error("Cloudflare D1 binding `DB` is unavailable.");
+    if (!d1) {
+      console.error("[DB DEBUG] env.DB is unavailable!");
+      throw new Error("Cloudflare D1 binding `DB` is unavailable.");
+    }
+    console.log("[DB DEBUG] Running D1 batch table creation...");
     await d1.batch([
       d1.prepare("CREATE TABLE IF NOT EXISTS teams (id text PRIMARY KEY NOT NULL, name text NOT NULL, code text NOT NULL, flag text DEFAULT '' NOT NULL, eliminated_at text)"),
       d1.prepare("CREATE UNIQUE INDEX IF NOT EXISTS teams_code_unique ON teams (code)"),
@@ -30,6 +35,7 @@ export async function ensureArchiveDatabase() {
       d1.prepare("CREATE TABLE IF NOT EXISTS feed_events (fixture_id text NOT NULL, sequence integer NOT NULL, action text DEFAULT 'unknown' NOT NULL, participant integer, event_epoch integer, payload text NOT NULL, status text DEFAULT 'confirmed' NOT NULL, received_at text DEFAULT CURRENT_TIMESTAMP NOT NULL, PRIMARY KEY (fixture_id, sequence))"),
       d1.prepare("CREATE TABLE IF NOT EXISTS fixture_sync_state (fixture_id text PRIMARY KEY NOT NULL, source text DEFAULT 'txline-devnet' NOT NULL, last_sequence integer DEFAULT 0 NOT NULL, event_count integer DEFAULT 0 NOT NULL, player_count integer DEFAULT 0 NOT NULL, attributed_event_count integer DEFAULT 0 NOT NULL, data_coverage text DEFAULT 'unavailable' NOT NULL, historical_fetched_at text, reconciled_at text, finalised integer DEFAULT false NOT NULL, last_error text, updated_at text DEFAULT CURRENT_TIMESTAMP NOT NULL)"),
     ]);
+    console.log("[DB DEBUG] D1 batch table creation completed. Verifying table columns...");
 
     const requiredColumns: Record<string, Array<[string, string]>> = {
       fixtures: [
@@ -45,13 +51,19 @@ export async function ensureArchiveDatabase() {
       feed_events: [["action", "text DEFAULT 'unknown' NOT NULL"], ["participant", "integer"], ["event_epoch", "integer"]],
     };
     for (const [table, columns] of Object.entries(requiredColumns)) {
+      console.log(`[DB DEBUG] Checking table columns for: ${table}`);
       const result = await d1.prepare(`PRAGMA table_info(${table})`).all<{ name: string }>();
       const existing = new Set((result.results ?? []).map((column) => column.name));
       for (const [name, definition] of columns) {
-        if (!existing.has(name)) await d1.prepare(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`).run();
+        if (!existing.has(name)) {
+          console.log(`[DB DEBUG] Altering table ${table} to add column: ${name}`);
+          await d1.prepare(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`).run();
+        }
       }
     }
+    console.log("[DB DEBUG] ensureArchiveDatabase initialization complete!");
   })().catch((error) => {
+    console.error("[DB DEBUG] ensureArchiveDatabase failed:", error);
     initialization = null;
     throw error;
   });

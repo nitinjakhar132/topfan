@@ -31,6 +31,7 @@ export type LivePlayer = {
   penaltyAttempts: number;
   penaltyGoals: number;
   impactRating: number | null;
+  sofascoreId?: number | null;
 };
 
 export type MatchFeed = {
@@ -75,6 +76,10 @@ export function normalizeFixtures(payload: unknown): LiveFixture[] {
   return payloadRows(payload).flatMap((value) => {
     const row = record(value);
     if (!row) return [];
+    const comp = text(first(row, ["Competition", "competition", "CompetitionId", "competitionId"])).toLowerCase();
+    if (comp && !comp.includes("world cup") && !comp.includes("placeholder")) {
+      return [];
+    }
     const id = text(first(row, ["FixtureId", "fixtureId", "id"]));
     const participant1 = text(first(row, ["Participant1", "participant1", "Participant1Name", "participant1Name"]));
     const participant2 = text(first(row, ["Participant2", "participant2", "Participant2Name", "participant2Name"]));
@@ -195,26 +200,28 @@ export function normalizeMatchFeed(payload: unknown): MatchFeed {
       const id = text(first(entry, ["fixturePlayerId", "FixturePlayerId", "playerId", "PlayerId", "id"]));
       const name = text(first(playerObject, ["preferredName", "PreferredName", "name", "Name"]));
       if (!id || !name) continue;
-      const playerStats = record(stats[id]) ?? null;
-      players.push({
-        id,
-        name,
-        number: first(entry, ["rosterNumber", "RosterNumber", "shirtNumber"]) === undefined ? null : numberValue(first(entry, ["rosterNumber", "RosterNumber", "shirtNumber"])),
-        position: positionFrom(entry),
-        starter: Boolean(first(entry, ["starter", "Starter", "isStarter"])),
-        participant,
-        goals: numberValue(first(playerStats, ["goals", "Goals"])),
-        ownGoals: numberValue(first(playerStats, ["ownGoals", "OwnGoals"])),
-        shots: numberValue(first(playerStats, ["shots", "Shots"])),
-        shotsOnTarget: numberValue(first(playerStats, ["shotsOnTarget", "ShotsOnTarget"])),
-        yellowCards: numberValue(first(playerStats, ["yellowCards", "YellowCards"])),
-        redCards: numberValue(first(playerStats, ["redCards", "RedCards"])),
-        penaltyAttempts: numberValue(first(playerStats, ["penaltyAttempts", "PenaltyAttempts"])),
-        penaltyGoals: numberValue(first(playerStats, ["penaltyGoals", "PenaltyGoals"])),
-        impactRating: rating(playerStats),
-      });
-    }
-  }
+       const playerStats = record(stats[id]) ?? null;
+       const sofascoreIdVal = first(playerObject, ["normativeId", "NormativeId"]);
+       players.push({
+         id,
+         name,
+         number: first(entry, ["rosterNumber", "RosterNumber", "shirtNumber"]) === undefined ? null : numberValue(first(entry, ["rosterNumber", "RosterNumber", "shirtNumber"])),
+         position: positionFrom(entry),
+         starter: Boolean(first(entry, ["starter", "Starter", "isStarter"])),
+         participant,
+         goals: numberValue(first(playerStats, ["goals", "Goals"])),
+         ownGoals: numberValue(first(playerStats, ["ownGoals", "OwnGoals"])),
+         shots: numberValue(first(playerStats, ["shots", "Shots"])),
+         shotsOnTarget: numberValue(first(playerStats, ["shotsOnTarget", "ShotsOnTarget"])),
+         yellowCards: numberValue(first(playerStats, ["yellowCards", "YellowCards"])),
+         redCards: numberValue(first(playerStats, ["redCards", "RedCards"])),
+         penaltyAttempts: numberValue(first(playerStats, ["penaltyAttempts", "PenaltyAttempts"])),
+         penaltyGoals: numberValue(first(playerStats, ["penaltyGoals", "PenaltyGoals"])),
+         impactRating: rating(playerStats),
+         sofascoreId: sofascoreIdVal !== undefined ? numberValue(sofascoreIdVal) : null,
+       });
+     }
+   }
   const score = latestScore(payload);
   const latest = record(rows.at(-1));
   return { players, ...score, action: latest ? actionName(latest) || null : null, sequence: latest && first(latest, ["Seq", "seq"]) !== undefined ? numberValue(first(latest, ["Seq", "seq"])) : null };

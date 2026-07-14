@@ -10,7 +10,6 @@ export async function POST() {
   if (!payload.token) return Response.json({ error: "TxLINE returned no guest token." }, { status: 502 });
   return Response.json(
     { jwt: payload.token, network: "devnet", programId: TXLINE.programId },
-    { headers: { "Set-Cookie": txlineCookie(TXLINE_JWT_COOKIE, payload.token, 60 * 60 * 24 * 29) } },
+    { headers: { "Set-Cookie": txlineCookie(TXLINE_JWT_COOKIE, payload.token, 60 * 55) } },
   );
 }
-
