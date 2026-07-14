@@ -11,6 +11,8 @@ export type LiveFixture = {
   startsAt: string;
   gameState: number | null;
   competitionId: string;
+  homeScore: number | null;
+  awayScore: number | null;
 };
 
 export type LivePlayer = {
@@ -98,6 +100,8 @@ export function normalizeFixtures(payload: unknown): LiveFixture[] {
       startsAt,
       gameState: first(row, ["GameState", "gameState"]) === undefined ? null : numberValue(first(row, ["GameState", "gameState"])),
       competitionId: text(first(row, ["CompetitionId", "competitionId"])),
+      homeScore: first(row, [participant1IsHome ? "Participant1Score" : "Participant2Score", "homeScore"]) === undefined ? null : numberValue(first(row, [participant1IsHome ? "Participant1Score" : "Participant2Score", "homeScore"])),
+      awayScore: first(row, [participant1IsHome ? "Participant2Score" : "Participant1Score", "awayScore"]) === undefined ? null : numberValue(first(row, [participant1IsHome ? "Participant2Score" : "Participant1Score", "awayScore"])),
     }];
   }).sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
 }

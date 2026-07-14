@@ -10,7 +10,13 @@ type Screen = "home" | "fixtures" | "select" | "match" | "history" | "team" | "p
 type Participation = { fixtureId: string; teamId: string; playerIds: string[]; lockedAt: string };
 type TeamSummary = { id: string; name: string; matches: LiveFixture[]; supported: number };
 type MatchOdds = { home: number; draw: number; away: number };
-type MatchCardComparison = { yourTotal: number | null; oppositionTotal: number | null };
+type MatchCardComparison = {
+  yourTotal: number | null;
+  homeBest: number | null;
+  awayBest: number | null;
+  supportedTeamId: string | null;
+  demo?: boolean;
+};
 type StoredFixtureRow = {
   id: string; participant1Id: string; participant2Id: string; homeTeamId: string; awayTeamId: string;
   startsAt: string; phase: string; competitionId: string | null; homeScore: number | null; awayScore: number | null;
@@ -157,6 +163,23 @@ function matchCardTime(fixture: LiveFixture, label: string) {
   };
 }
 
+function isArgentinaSwitzerland(fixture: LiveFixture) {
+  const teams = new Set([fixture.homeTeam.toLowerCase(), fixture.awayTeam.toLowerCase()]);
+  return teams.has("argentina") && teams.has("switzerland");
+}
+
+function argentinaPreviewComparison(fixture: LiveFixture): MatchCardComparison | null {
+  if (!isArgentinaSwitzerland(fixture)) return null;
+  const argentinaIsHome = fixture.homeTeam.toLowerCase() === "argentina";
+  return {
+    yourTotal: 22.8,
+    homeBest: argentinaIsHome ? 24.1 : 23.6,
+    awayBest: argentinaIsHome ? 23.6 : 24.1,
+    supportedTeamId: argentinaIsHome ? fixture.homeTeamId : fixture.awayTeamId,
+    demo: true,
+  };
+}
+
 function normalizeMatchOdds(payload: unknown, fixture: LiveFixture): MatchOdds | null {
   if (!Array.isArray(payload)) return null;
   const candidates = payload.filter((entry): entry is Record<string, unknown> => {
@@ -212,6 +235,8 @@ function storedFixture(row: StoredFixtureRow): LiveFixture | null {
     startsAt: row.startsAt,
     gameState: row.phase === "final" ? 5 : null,
     competitionId: row.competitionId ?? "",
+    homeScore: typeof row.homeScore === "number" && Number.isFinite(row.homeScore) ? row.homeScore : null,
+    awayScore: typeof row.awayScore === "number" && Number.isFinite(row.awayScore) ? row.awayScore : null,
   };
 }
 
@@ -258,14 +283,13 @@ function FixtureRow({ fixture, onClick }: { fixture: LiveFixture; onClick: () =>
   </button>;
 }
 
-function MatchCard({ fixture, label, onClick, preferredTeamId, odds, comparison, participated }: {
+function MatchCard({ fixture, label, onClick, preferredTeamId, odds, comparison }: {
   fixture: LiveFixture;
   label: string;
   onClick: () => void;
   preferredTeamId: string;
   odds: MatchOdds | null | undefined;
   comparison: MatchCardComparison | null | undefined;
-  participated: boolean;
 }) {
   const status = fixtureStatus(fixture);
   const highlighted = label === "NEXT MATCH" || status === "LIVE / STARTED";
@@ -273,12 +297,19 @@ function MatchCard({ fixture, label, onClick, preferredTeamId, odds, comparison,
   const time = matchCardTime(fixture, label);
   const homePreferred = preferredTeamId === fixture.homeTeamId;
   const awayPreferred = preferredTeamId === fixture.awayTeamId;
-  const hasMatchScore = !future && fixture.homeScore !== null && fixture.awayScore !== null;
+  const preview = comparison?.demo === true;
+  const argentinaIsHome = fixture.homeTeam.toLowerCase() === "argentina";
+  const homeScore = typeof fixture.homeScore === "number" && Number.isFinite(fixture.homeScore) ? fixture.homeScore : preview ? (argentinaIsHome ? 2 : 1) : null;
+  const awayScore = typeof fixture.awayScore === "number" && Number.isFinite(fixture.awayScore) ? fixture.awayScore : preview ? (argentinaIsHome ? 1 : 2) : null;
+  const hasMatchScore = !future && homeScore !== null && awayScore !== null;
+  const homeIsYours = comparison?.supportedTeamId === fixture.homeTeamId && comparison.yourTotal !== null;
+  const awayIsYours = comparison?.supportedTeamId === fixture.awayTeamId && comparison.yourTotal !== null;
+  const homeMetric = homeIsYours ? comparison?.yourTotal : comparison?.homeBest;
+  const awayMetric = awayIsYours ? comparison?.yourTotal : comparison?.awayBest;
   return <button className={`match-card real-match-card ${highlighted ? "next-card" : ""}`} onClick={onClick}>
     <div className="match-card-top"><span className={`pill ${status === "LIVE / STARTED" ? "live-pill" : highlighted ? "next-pill" : "final-pill"}`}>{label}</span><time><b>{time.primary}</b><strong>{time.secondary}</strong></time></div>
-    <section className="match-card-teams"><span className={homePreferred ? "preferred-side" : ""}><TeamFlag name={fixture.homeTeam} className={`match-card-flag ${homePreferred ? "preferred-flag" : ""}`} /><b>{teamCode(fixture.homeTeam)}</b><small>{homePreferred ? "Your preferred team" : " "}</small></span><i>{hasMatchScore ? `${fixture.homeScore}–${fixture.awayScore}` : "VS"}</i><span className={awayPreferred ? "preferred-side" : ""}><TeamFlag name={fixture.awayTeam} className={`match-card-flag ${awayPreferred ? "preferred-flag" : ""}`} /><b>{teamCode(fixture.awayTeam)}</b><small>{awayPreferred ? "Your preferred team" : " "}</small></span></section>
-    {future ? <div className="mini-odds"><div className="mini-odds-heading"><span>WIN PROBABILITY · 90 MIN</span>{odds ? <b>{Math.round(odds.home)}% · {Math.round(odds.draw)}% · {Math.round(odds.away)}%</b> : <b>{odds === null ? "Unavailable" : "Loading TxLINE"}</b>}</div><div className={`mini-odds-bar ${odds ? "ready" : "pending"}`}>{odds ? <><i style={{ width: `${odds.home}%` }} /><i style={{ width: `${odds.draw}%` }} /><i style={{ width: `${odds.away}%` }} /></> : <i />}</div><div className="mini-odds-names"><span>{teamCode(fixture.homeTeam)}</span><span>DRAW</span><span>{teamCode(fixture.awayTeam)}</span></div></div> : <div className="match-card-comparison">{participated ? <><span><small>YOUR THREE</small><b>{comparison?.yourTotal?.toFixed(1) ?? "—"}</b></span><span><small>BEST OPPOSITION</small><b>{comparison?.oppositionTotal?.toFixed(1) ?? "—"}</b></span></> : <span className="not-played"><small>YOUR SUPPORTER SCORE</small><b>Not played</b></span>}</div>}
-    <footer><span>{future ? "TxLINE consensus odds" : hasMatchScore ? `Final · ${fixture.homeScore}–${fixture.awayScore}` : status}</span><b>{highlighted ? "View match →" : "Match details →"}</b></footer>
+    <section className="match-card-teams"><span className={homePreferred ? "preferred-side" : ""}><TeamFlag name={fixture.homeTeam} className={`match-card-flag ${homePreferred ? "preferred-flag" : ""}`} /><b>{teamCode(fixture.homeTeam)}</b><small>{homePreferred ? "Your preferred team" : " "}</small>{!future && <em className={`team-card-metric ${homeIsYours ? "yours" : ""}`}><small>{homeIsYours ? `YOUR THREE${preview ? " · PREVIEW" : ""}` : "BEST THREE"}</small><strong>{homeMetric?.toFixed(1) ?? "—"}</strong></em>}</span><i>{hasMatchScore ? `${homeScore}–${awayScore}` : "VS"}</i><span className={awayPreferred ? "preferred-side" : ""}><TeamFlag name={fixture.awayTeam} className={`match-card-flag ${awayPreferred ? "preferred-flag" : ""}`} /><b>{teamCode(fixture.awayTeam)}</b><small>{awayPreferred ? "Your preferred team" : " "}</small>{!future && <em className={`team-card-metric ${awayIsYours ? "yours" : ""}`}><small>{awayIsYours ? `YOUR THREE${preview ? " · PREVIEW" : ""}` : "BEST THREE"}</small><strong>{awayMetric?.toFixed(1) ?? "—"}</strong></em>}</span></section>
+    {future && <div className="mini-odds"><div className="mini-odds-heading"><span>WIN PROBABILITY · 90 MIN</span>{odds ? <b>{Math.round(odds.home)}% · {Math.round(odds.draw)}% · {Math.round(odds.away)}%</b> : <b>{odds === null ? "Unavailable" : "Loading TxLINE"}</b>}</div><div className={`mini-odds-bar ${odds ? "ready" : "pending"}`}>{odds ? <><i style={{ width: `${odds.home}%` }} /><i style={{ width: `${odds.draw}%` }} /><i style={{ width: `${odds.away}%` }} /></> : <i />}</div><div className="mini-odds-names"><span>{teamCode(fixture.homeTeam)}</span><span>DRAW</span><span>{teamCode(fixture.awayTeam)}</span></div></div>}
   </button>;
 }
 
@@ -523,23 +554,32 @@ export default function Home() {
         .catch((error) => { if (error instanceof Error && error.name !== "AbortError") setOddsByFixture((current) => ({ ...current, [fixture.id]: null })); });
     }
     const participation = participations.find((entry) => entry.fixtureId === fixture.id);
-    if (!future && participation && !Object.prototype.hasOwnProperty.call(comparisonsByFixture, fixture.id)) {
+    if (!future && !Object.prototype.hasOwnProperty.call(comparisonsByFixture, fixture.id)) {
+      const preview = participation ? null : argentinaPreviewComparison(fixture);
+      if (preview) {
+        setComparisonsByFixture((current) => ({ ...current, [fixture.id]: preview }));
+        return () => controller.abort();
+      }
       fetch(`/api/data/fixtures/${fixture.id}`, { signal: controller.signal })
         .then(async (response) => response.ok ? await response.json() as StoredMatch : null)
         .then((detail) => {
           if (!detail) { setComparisonsByFixture((current) => ({ ...current, [fixture.id]: null })); return; }
-          const selected = detail.players.filter((player) => participation.playerIds.includes(player.id));
+          const bestForTeam = (teamId: string) => {
+            const best = positions.map((position) => detail.players
+              .filter((player) => player.teamId === teamId && player.position === position && player.stats?.impactRating !== undefined)
+              .sort((a, b) => (b.stats?.impactRating ?? 0) - (a.stats?.impactRating ?? 0))[0]).filter(Boolean);
+            return best.length === 3 ? best.reduce((total, player) => total + (player?.stats?.impactRating ?? 0), 0) : null;
+          };
+          const selected = participation ? detail.players.filter((player) => participation.playerIds.includes(player.id)) : [];
           const yourTotal = selected.length === 3 && selected.every((player) => player.stats?.impactRating !== undefined)
             ? selected.reduce((total, player) => total + (player.stats?.impactRating ?? 0), 0)
             : null;
-          const oppositionId = participation.teamId === fixture.homeTeamId ? fixture.awayTeamId : fixture.homeTeamId;
-          const bestOpposition = positions.map((position) => detail.players
-            .filter((player) => player.teamId === oppositionId && player.position === position && player.stats?.impactRating !== undefined)
-            .sort((a, b) => (b.stats?.impactRating ?? 0) - (a.stats?.impactRating ?? 0))[0]).filter(Boolean);
-          const oppositionTotal = bestOpposition.length === 3
-            ? bestOpposition.reduce((total, player) => total + (player?.stats?.impactRating ?? 0), 0)
-            : null;
-          setComparisonsByFixture((current) => ({ ...current, [fixture.id]: { yourTotal, oppositionTotal } }));
+          setComparisonsByFixture((current) => ({ ...current, [fixture.id]: {
+            yourTotal,
+            homeBest: bestForTeam(fixture.homeTeamId),
+            awayBest: bestForTeam(fixture.awayTeamId),
+            supportedTeamId: participation?.teamId ?? null,
+          } }));
         })
         .catch((error) => { if (error instanceof Error && error.name !== "AbortError") setComparisonsByFixture((current) => ({ ...current, [fixture.id]: null })); });
     }
@@ -547,6 +587,8 @@ export default function Home() {
   }, [comparisonsByFixture, matchNavigation.ordered, matchRailIndex, oddsByFixture, participations, screen, sessionNow]);
 
   const preferredTeamForFixture = (fixture: LiveFixture) => {
+    const preview = argentinaPreviewComparison(fixture);
+    if (preview) return preview.supportedTeamId ?? "";
     const homeCount = supportCounts.get(fixture.homeTeamId) ?? 0;
     const awayCount = supportCounts.get(fixture.awayTeamId) ?? 0;
     if (homeCount === awayCount) return "";
@@ -584,11 +626,11 @@ export default function Home() {
     <header className="topbar"><button className="brand" onClick={() => setScreen("home")}><span className="brand-mark">1N</span><span>ONE NATION</span></button><span className="network-badge">DEVNET</span><button className={`wallet ${connectionState}`} onClick={connectTxline} disabled={connectionState === "connecting"}><span className="wallet-dot" />{wallet ? shortWallet(wallet) : connected ? "TxLINE active" : "Connect"}</button></header>
     <div className="content">
       {screen === "home" && <div className="screen enter real-home">
-        <div className="home-intro"><span className="eyebrow">TXLINE · LIVE DEVNET DATA</span><h1>Your World Cup.</h1><p>Nothing on this screen is filled with demonstration sports data.</p></div>
+        <div className="home-intro"><span className="eyebrow">TXLINE · LIVE DEVNET DATA</span><h1>Your World Cup.</h1><p>Real tournament data, plus one labelled Argentina preview to demonstrate your supporter score.</p></div>
         {!connected && <button className="connect-data-card" onClick={connectTxline}><span>LIVE DATA LOCKED</span><h2>Connect TxLINE devnet</h2><p>Complete the free wallet subscription to load fixtures, official squads, scores and player statistics.</p><b>{connectionState === "connecting" ? `Step ${connectionStep}/6 · ${message}` : "Connect wallet →"}</b></button>}
         {connected && <>
           <div className="rail-heading matches-heading"><div><h2>Matches</h2><span>Previous matches left · upcoming matches right</span></div><button className="see-all" onClick={() => setScreen("fixtures")}>See all</button></div>
-          {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <><div className="horizontal-rail match-rail" ref={matchRailRef} onScroll={updateMatchRailIndex}>{matchNavigation.ordered.map((fixture) => <MatchCard key={fixture.id} fixture={fixture} label={matchLabel(fixture)} preferredTeamId={preferredTeamForFixture(fixture)} odds={oddsByFixture[fixture.id]} comparison={comparisonsByFixture[fixture.id]} participated={participations.some((entry) => entry.fixtureId === fixture.id)} onClick={() => openFixture(fixture)} />)}</div><div className="match-rail-progress" aria-live="polite"><button aria-label="Show previous match" onClick={() => navigateMatchRail(-1)} disabled={matchRailIndex === 0}>← Previous</button><span>{matchRailIndex + 1} / {matchNavigation.ordered.length}</span><button aria-label="Show next match" onClick={() => navigateMatchRail(1)} disabled={matchRailIndex >= matchNavigation.ordered.length - 1}>Next →</button></div></> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
+          {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <><div className="horizontal-rail match-rail" ref={matchRailRef} onScroll={updateMatchRailIndex}>{matchNavigation.ordered.map((fixture) => <MatchCard key={fixture.id} fixture={fixture} label={matchLabel(fixture)} preferredTeamId={preferredTeamForFixture(fixture)} odds={oddsByFixture[fixture.id]} comparison={comparisonsByFixture[fixture.id]} onClick={() => openFixture(fixture)} />)}</div><div className="match-rail-progress" aria-live="polite"><button aria-label="Show previous match" onClick={() => navigateMatchRail(-1)} disabled={matchRailIndex === 0}>← Previous</button><span>{matchRailIndex + 1} / {matchNavigation.ordered.length}</span><button aria-label="Show next match" onClick={() => navigateMatchRail(1)} disabled={matchRailIndex >= matchNavigation.ordered.length - 1}>Next →</button></div></> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
           <div className="rail-heading team-heading"><div><h2>Teams</h2><span>Derived from real fixtures</span></div></div>
           {teams.length ? <div className="horizontal-rail team-rail">{teams.map((team) => <button className="team-career-card real-team-card" key={team.id} onClick={() => { setActiveTeamPage(team); setScreen("team"); }}><TeamFlag name={team.name} className="real-team-badge" /><div className="team-card-title"><div><b>{team.name}</b><small>{team.matches.length} TxLINE fixtures</small></div></div><div className="team-card-score"><strong>{team.supported}</strong><span>matches you supported</span></div><div className="team-card-rank"><span>{team.supported ? "History ready" : "Not followed"}</span><b>›</b></div></button>)}</div> : null}
         </>}
