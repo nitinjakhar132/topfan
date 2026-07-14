@@ -9,6 +9,8 @@ type Position = "ATT" | "MID" | "DEF";
 type Screen = "home" | "fixtures" | "select" | "match" | "history" | "team" | "profile";
 type Participation = { fixtureId: string; teamId: string; playerIds: string[]; lockedAt: string };
 type TeamSummary = { id: string; name: string; matches: LiveFixture[]; supported: number };
+type MatchOdds = { home: number; draw: number; away: number };
+type MatchCardComparison = { yourTotal: number | null; oppositionTotal: number | null };
 type StoredFixtureRow = {
   id: string; participant1Id: string; participant2Id: string; homeTeamId: string; awayTeamId: string;
   startsAt: string; phase: string; competitionId: string | null; homeScore: number | null; awayScore: number | null;
@@ -143,6 +145,52 @@ function fixtureStatus(fixture: LiveFixture) {
   return "UPCOMING";
 }
 
+function matchCardTime(fixture: LiveFixture, label: string) {
+  const start = new Date(fixture.startsAt);
+  if (label === "NEXT MATCH" && start.getTime() > Date.now()) {
+    const hours = Math.max(1, Math.ceil((start.getTime() - Date.now()) / 3_600_000));
+    return { primary: `In ${hours}h`, secondary: start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
+  }
+  return {
+    primary: start.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }),
+    secondary: start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  };
+}
+
+function normalizeMatchOdds(payload: unknown, fixture: LiveFixture): MatchOdds | null {
+  if (!Array.isArray(payload)) return null;
+  const candidates = payload.filter((entry): entry is Record<string, unknown> => {
+    if (!entry || typeof entry !== "object") return false;
+    const pct = (entry as Record<string, unknown>).Pct;
+    return Array.isArray(pct) && pct.length === 3 && pct.every((value) => Number.isFinite(Number(value)));
+  });
+  candidates.sort((a, b) => {
+    const score = (entry: Record<string, unknown>) => {
+      const type = String(entry.SuperOddsType ?? "");
+      const period = String(entry.MarketPeriod ?? "");
+      return (/1x2|result|moneyline|match/i.test(type) ? 2 : 0) + (/match|full|game|90/i.test(period) ? 1 : 0) - (entry.InRunning ? 1 : 0);
+    };
+    return score(b) - score(a);
+  });
+  const row = candidates[0];
+  if (!row) return null;
+  const values = (row.Pct as unknown[]).map(Number);
+  const sum = values.reduce((total, value) => total + value, 0);
+  if (!(sum > 0)) return null;
+  const normalized = values.map((value) => value / sum * 100);
+  const names = Array.isArray(row.PriceNames) ? row.PriceNames.map((name) => String(name).toLowerCase()) : [];
+  const homeName = fixture.homeTeam.toLowerCase();
+  const awayName = fixture.awayTeam.toLowerCase();
+  const findIndex = (patterns: string[]) => names.findIndex((name) => patterns.some((pattern) => name === pattern || name.includes(pattern)));
+  const homeIndex = findIndex([homeName, "home", "1"]);
+  const drawIndex = findIndex(["draw", "tie", "x"]);
+  const awayIndex = findIndex([awayName, "away", "2"]);
+  const distinct = new Set([homeIndex, drawIndex, awayIndex]).size === 3 && homeIndex >= 0 && drawIndex >= 0 && awayIndex >= 0;
+  return distinct
+    ? { home: normalized[homeIndex], draw: normalized[drawIndex], away: normalized[awayIndex] }
+    : { home: normalized[0], draw: normalized[1], away: normalized[2] };
+}
+
 function shortWallet(value: string) {
   return value ? `${value.slice(0, 4)}…${value.slice(-3)}` : "Connected";
 }
@@ -210,13 +258,27 @@ function FixtureRow({ fixture, onClick }: { fixture: LiveFixture; onClick: () =>
   </button>;
 }
 
-function MatchCard({ fixture, label, onClick }: { fixture: LiveFixture; label: string; onClick: () => void }) {
+function MatchCard({ fixture, label, onClick, preferredTeamId, odds, comparison, participated }: {
+  fixture: LiveFixture;
+  label: string;
+  onClick: () => void;
+  preferredTeamId: string;
+  odds: MatchOdds | null | undefined;
+  comparison: MatchCardComparison | null | undefined;
+  participated: boolean;
+}) {
   const status = fixtureStatus(fixture);
   const highlighted = label === "NEXT MATCH" || status === "LIVE / STARTED";
+  const future = status === "UPCOMING";
+  const time = matchCardTime(fixture, label);
+  const homePreferred = preferredTeamId === fixture.homeTeamId;
+  const awayPreferred = preferredTeamId === fixture.awayTeamId;
+  const hasMatchScore = !future && fixture.homeScore !== null && fixture.awayScore !== null;
   return <button className={`match-card real-match-card ${highlighted ? "next-card" : ""}`} onClick={onClick}>
-    <div><span className={`pill ${status === "LIVE / STARTED" ? "live-pill" : highlighted ? "next-pill" : "final-pill"}`}>{label}</span><time>{new Date(fixture.startsAt).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</time></div>
-    <section><span><TeamFlag name={fixture.homeTeam} className="match-card-flag" /><b>{teamCode(fixture.homeTeam)}</b></span><i>VS</i><span><TeamFlag name={fixture.awayTeam} className="match-card-flag" /><b>{teamCode(fixture.awayTeam)}</b></span></section>
-    <footer><span>{new Date(fixture.startsAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><b>{highlighted ? "View match →" : "Match details →"}</b></footer>
+    <div className="match-card-top"><span className={`pill ${status === "LIVE / STARTED" ? "live-pill" : highlighted ? "next-pill" : "final-pill"}`}>{label}</span><time><b>{time.primary}</b><strong>{time.secondary}</strong></time></div>
+    <section className="match-card-teams"><span className={homePreferred ? "preferred-side" : ""}><TeamFlag name={fixture.homeTeam} className={`match-card-flag ${homePreferred ? "preferred-flag" : ""}`} /><b>{teamCode(fixture.homeTeam)}</b><small>{homePreferred ? "Your preferred team" : " "}</small></span><i>{hasMatchScore ? `${fixture.homeScore}–${fixture.awayScore}` : "VS"}</i><span className={awayPreferred ? "preferred-side" : ""}><TeamFlag name={fixture.awayTeam} className={`match-card-flag ${awayPreferred ? "preferred-flag" : ""}`} /><b>{teamCode(fixture.awayTeam)}</b><small>{awayPreferred ? "Your preferred team" : " "}</small></span></section>
+    {future ? <div className="mini-odds"><div className="mini-odds-heading"><span>WIN PROBABILITY · 90 MIN</span>{odds ? <b>{Math.round(odds.home)}% · {Math.round(odds.draw)}% · {Math.round(odds.away)}%</b> : <b>{odds === null ? "Unavailable" : "Loading TxLINE"}</b>}</div><div className={`mini-odds-bar ${odds ? "ready" : "pending"}`}>{odds ? <><i style={{ width: `${odds.home}%` }} /><i style={{ width: `${odds.draw}%` }} /><i style={{ width: `${odds.away}%` }} /></> : <i />}</div><div className="mini-odds-names"><span>{teamCode(fixture.homeTeam)}</span><span>DRAW</span><span>{teamCode(fixture.awayTeam)}</span></div></div> : <div className="match-card-comparison">{participated ? <><span><small>YOUR THREE</small><b>{comparison?.yourTotal?.toFixed(1) ?? "—"}</b></span><span><small>BEST OPPOSITION</small><b>{comparison?.oppositionTotal?.toFixed(1) ?? "—"}</b></span></> : <span className="not-played"><small>YOUR SUPPORTER SCORE</small><b>Not played</b></span>}</div>}
+    <footer><span>{future ? "TxLINE consensus odds" : hasMatchScore ? `Final · ${fixture.homeScore}–${fixture.awayScore}` : status}</span><b>{highlighted ? "View match →" : "Match details →"}</b></footer>
   </button>;
 }
 
@@ -246,6 +308,8 @@ export default function Home() {
   const [activeTeamPage, setActiveTeamPage] = useState<TeamSummary | null>(null);
   const [sessionNow] = useState(() => Date.now());
   const [matchRailIndex, setMatchRailIndex] = useState(0);
+  const [oddsByFixture, setOddsByFixture] = useState<Record<string, MatchOdds | null>>({});
+  const [comparisonsByFixture, setComparisonsByFixture] = useState<Record<string, MatchCardComparison | null>>({});
   const matchRailRef = useRef<HTMLDivElement>(null);
 
   const timedFetch = (url: string, init?: RequestInit, timeout = 20_000) => {
@@ -374,6 +438,12 @@ export default function Home() {
     return [...map.entries()].map(([id, value]) => ({ id, ...value, supported: participations.filter((entry) => entry.teamId === id).length })).sort((a, b) => b.supported - a.supported || a.name.localeCompare(b.name));
   }, [fixtures, participations]);
 
+  const supportCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    participations.forEach((entry) => counts.set(entry.teamId, (counts.get(entry.teamId) ?? 0) + 1));
+    return counts;
+  }, [participations]);
+
   const matchNavigation = useMemo(() => {
     const completed = fixtures
       .filter((fixture) => Date.parse(fixture.startsAt) <= sessionNow - 4 * 60 * 60 * 1000)
@@ -440,6 +510,49 @@ export default function Home() {
     return () => window.cancelAnimationFrame(frame);
   }, [fixturesLoading, matchNavigation.focusIndex, matchNavigation.ordered.length, screen]);
 
+  useEffect(() => {
+    if (screen !== "home") return;
+    const fixture = matchNavigation.ordered[matchRailIndex];
+    if (!fixture) return;
+    const controller = new AbortController();
+    const future = Date.parse(fixture.startsAt) > sessionNow;
+    if (future && !Object.prototype.hasOwnProperty.call(oddsByFixture, fixture.id)) {
+      fetch(`/api/txline/odds/${fixture.id}`, { signal: controller.signal })
+        .then(async (response) => response.ok ? normalizeMatchOdds(await response.json(), fixture) : null)
+        .then((odds) => setOddsByFixture((current) => ({ ...current, [fixture.id]: odds })))
+        .catch((error) => { if (error instanceof Error && error.name !== "AbortError") setOddsByFixture((current) => ({ ...current, [fixture.id]: null })); });
+    }
+    const participation = participations.find((entry) => entry.fixtureId === fixture.id);
+    if (!future && participation && !Object.prototype.hasOwnProperty.call(comparisonsByFixture, fixture.id)) {
+      fetch(`/api/data/fixtures/${fixture.id}`, { signal: controller.signal })
+        .then(async (response) => response.ok ? await response.json() as StoredMatch : null)
+        .then((detail) => {
+          if (!detail) { setComparisonsByFixture((current) => ({ ...current, [fixture.id]: null })); return; }
+          const selected = detail.players.filter((player) => participation.playerIds.includes(player.id));
+          const yourTotal = selected.length === 3 && selected.every((player) => player.stats?.impactRating !== undefined)
+            ? selected.reduce((total, player) => total + (player.stats?.impactRating ?? 0), 0)
+            : null;
+          const oppositionId = participation.teamId === fixture.homeTeamId ? fixture.awayTeamId : fixture.homeTeamId;
+          const bestOpposition = positions.map((position) => detail.players
+            .filter((player) => player.teamId === oppositionId && player.position === position && player.stats?.impactRating !== undefined)
+            .sort((a, b) => (b.stats?.impactRating ?? 0) - (a.stats?.impactRating ?? 0))[0]).filter(Boolean);
+          const oppositionTotal = bestOpposition.length === 3
+            ? bestOpposition.reduce((total, player) => total + (player?.stats?.impactRating ?? 0), 0)
+            : null;
+          setComparisonsByFixture((current) => ({ ...current, [fixture.id]: { yourTotal, oppositionTotal } }));
+        })
+        .catch((error) => { if (error instanceof Error && error.name !== "AbortError") setComparisonsByFixture((current) => ({ ...current, [fixture.id]: null })); });
+    }
+    return () => controller.abort();
+  }, [comparisonsByFixture, matchNavigation.ordered, matchRailIndex, oddsByFixture, participations, screen, sessionNow]);
+
+  const preferredTeamForFixture = (fixture: LiveFixture) => {
+    const homeCount = supportCounts.get(fixture.homeTeamId) ?? 0;
+    const awayCount = supportCounts.get(fixture.awayTeamId) ?? 0;
+    if (homeCount === awayCount) return "";
+    return homeCount > awayCount ? fixture.homeTeamId : fixture.awayTeamId;
+  };
+
   const openFixture = (fixture: LiveFixture, team?: TeamSummary) => {
     setActiveFixture(fixture); setSelected({}); setActivePosition("ATT");
     if (team) setActiveTeamId(team.id); else setActiveTeamId("");
@@ -475,7 +588,7 @@ export default function Home() {
         {!connected && <button className="connect-data-card" onClick={connectTxline}><span>LIVE DATA LOCKED</span><h2>Connect TxLINE devnet</h2><p>Complete the free wallet subscription to load fixtures, official squads, scores and player statistics.</p><b>{connectionState === "connecting" ? `Step ${connectionStep}/6 · ${message}` : "Connect wallet →"}</b></button>}
         {connected && <>
           <div className="rail-heading matches-heading"><div><h2>Matches</h2><span>Previous matches left · upcoming matches right</span></div><button className="see-all" onClick={() => setScreen("fixtures")}>See all</button></div>
-          {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <><div className="horizontal-rail match-rail" ref={matchRailRef} onScroll={updateMatchRailIndex}>{matchNavigation.ordered.map((fixture) => <MatchCard key={fixture.id} fixture={fixture} label={matchLabel(fixture)} onClick={() => openFixture(fixture)} />)}</div><div className="match-rail-progress" aria-live="polite"><button aria-label="Show previous match" onClick={() => navigateMatchRail(-1)} disabled={matchRailIndex === 0}>← Previous</button><span>{matchRailIndex + 1} / {matchNavigation.ordered.length}</span><button aria-label="Show next match" onClick={() => navigateMatchRail(1)} disabled={matchRailIndex >= matchNavigation.ordered.length - 1}>Next →</button></div></> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
+          {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <><div className="horizontal-rail match-rail" ref={matchRailRef} onScroll={updateMatchRailIndex}>{matchNavigation.ordered.map((fixture) => <MatchCard key={fixture.id} fixture={fixture} label={matchLabel(fixture)} preferredTeamId={preferredTeamForFixture(fixture)} odds={oddsByFixture[fixture.id]} comparison={comparisonsByFixture[fixture.id]} participated={participations.some((entry) => entry.fixtureId === fixture.id)} onClick={() => openFixture(fixture)} />)}</div><div className="match-rail-progress" aria-live="polite"><button aria-label="Show previous match" onClick={() => navigateMatchRail(-1)} disabled={matchRailIndex === 0}>← Previous</button><span>{matchRailIndex + 1} / {matchNavigation.ordered.length}</span><button aria-label="Show next match" onClick={() => navigateMatchRail(1)} disabled={matchRailIndex >= matchNavigation.ordered.length - 1}>Next →</button></div></> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
           <div className="rail-heading team-heading"><div><h2>Teams</h2><span>Derived from real fixtures</span></div></div>
           {teams.length ? <div className="horizontal-rail team-rail">{teams.map((team) => <button className="team-career-card real-team-card" key={team.id} onClick={() => { setActiveTeamPage(team); setScreen("team"); }}><TeamFlag name={team.name} className="real-team-badge" /><div className="team-card-title"><div><b>{team.name}</b><small>{team.matches.length} TxLINE fixtures</small></div></div><div className="team-card-score"><strong>{team.supported}</strong><span>matches you supported</span></div><div className="team-card-rank"><span>{team.supported ? "History ready" : "Not followed"}</span><b>›</b></div></button>)}</div> : null}
         </>}
