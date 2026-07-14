@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { LiveFixture, LivePlayer, MatchFeed, normalizeFixtures, normalizeMatchFeed } from "@/lib/txline/normalize";
@@ -171,6 +171,16 @@ function FixtureRow({ fixture, onClick }: { fixture: LiveFixture; onClick: () =>
   </button>;
 }
 
+function MatchCard({ fixture, label, onClick }: { fixture: LiveFixture; label: string; onClick: () => void }) {
+  const status = fixtureStatus(fixture);
+  const highlighted = label === "NEXT MATCH" || status === "LIVE / STARTED";
+  return <button className={`match-card real-match-card ${highlighted ? "next-card" : ""}`} onClick={onClick}>
+    <div><span className={`pill ${status === "LIVE / STARTED" ? "live-pill" : highlighted ? "next-pill" : "final-pill"}`}>{label}</span><time>{new Date(fixture.startsAt).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</time></div>
+    <section><span><em>{teamMark(fixture.homeTeam)}</em><b>{teamCode(fixture.homeTeam)}</b></span><i>VS</i><span><em>{teamMark(fixture.awayTeam)}</em><b>{teamCode(fixture.awayTeam)}</b></span></section>
+    <footer><span>{new Date(fixture.startsAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><b>{highlighted ? "View match →" : "Match details →"}</b></footer>
+  </button>;
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("home");
   const [wallet, setWallet] = useState("");
@@ -196,6 +206,8 @@ export default function Home() {
   });
   const [activeTeamPage, setActiveTeamPage] = useState<TeamSummary | null>(null);
   const [sessionNow] = useState(() => Date.now());
+  const [matchRailIndex, setMatchRailIndex] = useState(0);
+  const matchRailRef = useRef<HTMLDivElement>(null);
 
   const timedFetch = (url: string, init?: RequestInit, timeout = 20_000) => {
     const controller = new AbortController();
@@ -323,6 +335,57 @@ export default function Home() {
     return [...map.entries()].map(([id, value]) => ({ id, ...value, supported: participations.filter((entry) => entry.teamId === id).length })).sort((a, b) => b.supported - a.supported || a.name.localeCompare(b.name));
   }, [fixtures, participations]);
 
+  const matchNavigation = useMemo(() => {
+    const completed = fixtures
+      .filter((fixture) => Date.parse(fixture.startsAt) <= sessionNow - 4 * 60 * 60 * 1000)
+      .sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt));
+    const live = fixtures
+      .filter((fixture) => Date.parse(fixture.startsAt) > sessionNow - 4 * 60 * 60 * 1000 && Date.parse(fixture.startsAt) <= sessionNow)
+      .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
+    const upcoming = fixtures
+      .filter((fixture) => Date.parse(fixture.startsAt) > sessionNow)
+      .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
+    const ordered = [...completed.slice(0, 1), ...live, ...upcoming, ...completed.slice(1)];
+    return {
+      ordered,
+      lastMatchId: completed[0]?.id ?? "",
+      nextMatchId: upcoming[0]?.id ?? "",
+      upcoming: [...live, ...upcoming],
+      previous: completed,
+    };
+  }, [fixtures, sessionNow]);
+
+  const matchLabel = (fixture: LiveFixture) => {
+    if (fixture.id === matchNavigation.lastMatchId) return "LAST MATCH";
+    if (fixture.id === matchNavigation.nextMatchId) return "NEXT MATCH";
+    const status = fixtureStatus(fixture);
+    if (status === "LIVE / STARTED") return "LIVE NOW";
+    if (status === "UPCOMING") return "UPCOMING";
+    return "PREVIOUS";
+  };
+
+  const navigateMatchRail = (direction: -1 | 1) => {
+    const nextIndex = Math.min(matchNavigation.ordered.length - 1, Math.max(0, matchRailIndex + direction));
+    const card = matchRailRef.current?.querySelectorAll<HTMLElement>(".match-card")[nextIndex];
+    card?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+    setMatchRailIndex(nextIndex);
+  };
+
+  const updateMatchRailIndex = () => {
+    const rail = matchRailRef.current;
+    if (!rail) return;
+    const cards = [...rail.querySelectorAll<HTMLElement>(".match-card")];
+    if (!cards.length) return;
+    const railLeft = rail.getBoundingClientRect().left;
+    let nearest = 0;
+    let distance = Number.POSITIVE_INFINITY;
+    cards.forEach((card, index) => {
+      const candidate = Math.abs(card.getBoundingClientRect().left - railLeft - 20);
+      if (candidate < distance) { distance = candidate; nearest = index; }
+    });
+    setMatchRailIndex(nearest);
+  };
+
   const openFixture = (fixture: LiveFixture, team?: TeamSummary) => {
     setActiveFixture(fixture); setSelected({}); setActivePosition("ATT");
     if (team) setActiveTeamId(team.id); else setActiveTeamId("");
@@ -357,15 +420,15 @@ export default function Home() {
         <div className="home-intro"><span className="eyebrow">TXLINE · LIVE DEVNET DATA</span><h1>Your World Cup.</h1><p>Nothing on this screen is filled with demonstration sports data.</p></div>
         {!connected && <button className="connect-data-card" onClick={connectTxline}><span>LIVE DATA LOCKED</span><h2>Connect TxLINE devnet</h2><p>Complete the free wallet subscription to load fixtures, official squads, scores and player statistics.</p><b>{connectionState === "connecting" ? `Step ${connectionStep}/6 · ${message}` : "Connect wallet →"}</b></button>}
         {connected && <>
-          <div className="rail-heading"><div><h2>Matches</h2><span>Real tournament history + upcoming fixtures</span></div><button onClick={() => setScreen("fixtures")}>See all</button></div>
-          {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <div className="horizontal-rail match-rail">{fixtures.slice(0, 8).map((fixture) => <button className="match-card real-match-card" key={fixture.id} onClick={() => openFixture(fixture)}><div><span className="pill final-pill">{fixtureStatus(fixture)}</span><time>{new Date(fixture.startsAt).toLocaleDateString()}</time></div><section><span><em>{teamMark(fixture.homeTeam)}</em><b>{teamCode(fixture.homeTeam)}</b></span><i>VS</i><span><em>{teamMark(fixture.awayTeam)}</em><b>{teamCode(fixture.awayTeam)}</b></span></section><footer><span>{new Date(fixture.startsAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><b>Open match →</b></footer></button>)}</div> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
+          <div className="rail-heading matches-heading"><div><h2>Matches</h2><span>Last result, next fixture, then the full schedule</span></div><div className="match-heading-actions"><button className="rail-arrow" aria-label="Previous match" onClick={() => navigateMatchRail(-1)} disabled={matchRailIndex === 0}>‹</button><button className="rail-arrow" aria-label="Next match" onClick={() => navigateMatchRail(1)} disabled={matchRailIndex >= matchNavigation.ordered.length - 1}>›</button><button className="see-all" onClick={() => setScreen("fixtures")}>See all</button></div></div>
+          {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <><div className="horizontal-rail match-rail" ref={matchRailRef} onScroll={updateMatchRailIndex}>{matchNavigation.ordered.map((fixture) => <MatchCard key={fixture.id} fixture={fixture} label={matchLabel(fixture)} onClick={() => openFixture(fixture)} />)}</div><div className="match-rail-progress" aria-live="polite"><span>{matchRailIndex + 1} of {matchNavigation.ordered.length}</span><i><b style={{ width: `${((matchRailIndex + 1) / matchNavigation.ordered.length) * 100}%` }} /></i></div></> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
           <div className="rail-heading team-heading"><div><h2>Teams</h2><span>Derived from real fixtures</span></div></div>
           {teams.length ? <div className="horizontal-rail team-rail">{teams.map((team) => <button className="team-career-card real-team-card" key={team.id} onClick={() => { setActiveTeamPage(team); setScreen("team"); }}><span className="real-team-badge">{teamMark(team.name)}</span><div className="team-card-title"><div><b>{team.name}</b><small>{team.matches.length} TxLINE fixtures</small></div></div><div className="team-card-score"><strong>{team.supported}</strong><span>matches you supported</span></div><div className="team-card-rank"><span>{team.supported ? "History ready" : "Not followed"}</span><b>›</b></div></button>)}</div> : null}
         </>}
         <div className={`devnet-status ${connectionState}`}><span>●</span><div><b>TxLINE · Solana devnet</b><small>{message}</small></div></div>
       </div>}
 
-      {screen === "fixtures" && <div className="screen enter"><button className="back" onClick={() => setScreen("home")}>← Home</button><div className="page-title"><span className="eyebrow">TXLINE FIXTURES</span><h1>All matches</h1><p>{fixtures.length} authenticated fixtures returned by devnet.</p></div><div className="real-list">{fixtures.map((fixture) => <FixtureRow key={fixture.id} fixture={fixture} onClick={() => openFixture(fixture)} />)}</div></div>}
+      {screen === "fixtures" && <div className="screen enter"><button className="back" onClick={() => setScreen("home")}>← Home</button><div className="page-title"><span className="eyebrow">TXLINE FIXTURES</span><h1>All matches</h1><p>{fixtures.length} authenticated fixtures returned by devnet.</p></div>{matchNavigation.upcoming.length ? <section className="fixture-group"><div className="fixture-group-heading"><h2>Next matches</h2><span>{matchNavigation.upcoming.length}</span></div><div className="real-list">{matchNavigation.upcoming.map((fixture) => <FixtureRow key={fixture.id} fixture={fixture} onClick={() => openFixture(fixture)} />)}</div></section> : null}{matchNavigation.previous.length ? <section className="fixture-group"><div className="fixture-group-heading"><h2>Previous matches</h2><span>{matchNavigation.previous.length}</span></div><div className="real-list">{matchNavigation.previous.map((fixture) => <FixtureRow key={fixture.id} fixture={fixture} onClick={() => openFixture(fixture)} />)}</div></section> : null}</div>}
 
       {screen === "select" && activeFixture && <div className="screen enter"><button className="back" onClick={() => setScreen("home")}>← Matches</button><div className="page-title"><span className="eyebrow">OFFICIAL TXLINE LINEUP</span><h1>Choose your team</h1><p>{activeFixture.homeTeam} vs {activeFixture.awayTeam}</p></div>
         <div className="real-team-choice"><button className={activeTeamId === activeFixture.homeTeamId ? "active" : ""} onClick={() => { setActiveTeamId(activeFixture.homeTeamId); setSelected({}); }}>{teamMark(activeFixture.homeTeam)}<b>{activeFixture.homeTeam}</b></button><button className={activeTeamId === activeFixture.awayTeamId ? "active" : ""} onClick={() => { setActiveTeamId(activeFixture.awayTeamId); setSelected({}); }}>{teamMark(activeFixture.awayTeam)}<b>{activeFixture.awayTeam}</b></button></div>
