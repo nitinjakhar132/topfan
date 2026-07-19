@@ -1,4 +1,4 @@
-import { access, cp, mkdir, rm } from "node:fs/promises";
+import { access, cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
 
@@ -40,6 +40,14 @@ export function sites(): Plugin {
           recursive: true,
         });
       }
+
+      // Create the _worker.js entry point at the root of dist for Cloudflare Pages Advanced Mode.
+      // This tells Cloudflare Pages to route incoming requests to our server worker.
+      await writeFile(
+        resolve(root, "dist", "_worker.js"),
+        'import worker from "./server/index.js";\nexport default worker;\n'
+      );
     },
   };
 }
+
