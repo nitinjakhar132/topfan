@@ -1,0 +1,134 @@
+{
+  "goals": {
+    "metric": "goals",
+    "available": true,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": "goal"
+    },
+    "playerAttributionRate": 0.31,
+    "fixturePresenceRate": 0.11,
+    "reliable": false
+  },
+  "assists": {
+    "metric": "assists",
+    "available": false,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": null
+    },
+    "playerAttributionRate": 0,
+    "fixturePresenceRate": 0,
+    "reliable": false
+  },
+  "shots": {
+    "metric": "shots",
+    "available": false,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": null
+    },
+    "playerAttributionRate": 0,
+    "fixturePresenceRate": 0.13,
+    "reliable": false
+  },
+  "shotsOnTarget": {
+    "metric": "shotsOnTarget",
+    "available": true,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": "shot (Outcome=OnTarget)"
+    },
+    "playerAttributionRate": 0.15,
+    "fixturePresenceRate": 0.13,
+    "reliable": false
+  },
+  "chancesCreated": {
+    "metric": "chancesCreated",
+    "available": false,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": null
+    },
+    "playerAttributionRate": 0,
+    "fixturePresenceRate": 0,
+    "reliable": false
+  },
+  "tackles": {
+    "metric": "tackles",
+    "available": false,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": null
+    },
+    "playerAttributionRate": 0,
+    "fixturePresenceRate": 0,
+    "reliable": false
+  },
+  "yellowCards": {
+    "metric": "yellowCards",
+    "available": true,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": "yellow_card"
+    },
+    "playerAttributionRate": 0.31,
+    "fixturePresenceRate": 0.13,
+    "reliable": false
+  },
+  "redCards": {
+    "metric": "redCards",
+    "available": true,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": "red_card"
+    },
+    "playerAttributionRate": 0.33,
+    "fixturePresenceRate": 0.02,
+    "reliable": false
+  },
+  "ownGoals": {
+    "metric": "ownGoals",
+    "available": false,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": null
+    },
+    "playerAttributionRate": 0,
+    "fixturePresenceRate": 0,
+    "reliable": false
+  },
+  "penalties": {
+    "metric": "penalties",
+    "available": true,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": "penalty"
+    },
+    "playerAttributionRate": 0,
+    "fixturePresenceRate": 0.06,
+    "reliable": false
+  },
+  "minutes": {
+    "metric": "minutes",
+    "available": true,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": "substitution (for minute reconstruction)"
+    },
+    "playerAttributionRate": 0.99,
+    "fixturePresenceRate": 0.13,
+    "reliable": false
+  },
+  "substitutions": {
+    "metric": "substitutions",
+    "available": true,
+    "sources": {
+      "aggregateStats": null,
+      "eventAction": "substitution"
+    },
+    "playerAttributionRate": 0.49,
+    "fixturePresenceRate": 0.13,
+    "reliable": false
+  }
+}

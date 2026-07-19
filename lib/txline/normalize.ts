@@ -81,11 +81,11 @@ export function normalizeFixtures(payload: unknown): LiveFixture[] {
       return [];
     }
     const id = text(first(row, ["FixtureId", "fixtureId", "id"]));
-    const participant1 = text(first(row, ["Participant1", "participant1", "Participant1Name", "participant1Name"]));
-    const participant2 = text(first(row, ["Participant2", "participant2", "Participant2Name", "participant2Name"]));
-    if (!id || !participant1 || !participant2) return [];
-    const participant1Id = text(first(row, ["Participant1Id", "participant1Id"]), participant1);
-    const participant2Id = text(first(row, ["Participant2Id", "participant2Id"]), participant2);
+    const participant1 = text(first(row, ["Participant1", "participant1", "Participant1Name", "participant1Name"]), "");
+    const participant2 = text(first(row, ["Participant2", "participant2", "Participant2Name", "participant2Name"]), "");
+    if (!id) return [];
+    const participant1Id = text(first(row, ["Participant1Id", "participant1Id"]), participant1 || "1");
+    const participant2Id = text(first(row, ["Participant2Id", "participant2Id"]), participant2 || "2");
     const participant1IsHome = Boolean(first(row, ["Participant1IsHome", "participant1IsHome"]));
     const startRaw = first(row, ["StartTime", "startTime", "startsAt"]);
     const startNumber = Number(startRaw);

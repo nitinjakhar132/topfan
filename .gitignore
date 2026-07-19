@@ -43,3 +43,15 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# local scratch/temp files
+/scratch/
+/player_72.json
+/player_sample.json
+/txline_raw.json
+/addresses.html
+/read-db.cjs
+/read-error.cjs
+/test_db.ts
+/walkthrough.md
+

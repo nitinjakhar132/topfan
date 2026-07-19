@@ -331,7 +331,17 @@ async function syncHistorical(session, fixtureId, endpointArgument, metadataOnly
       const fixture = selected[index];
     const id = String(fixture.FixtureId);
     try {
-      const history = metadataOnly ? [] : await apiJson(`/scores/historical/${id}`, session);
+      let history;
+      if (metadataOnly) {
+        history = [];
+      } else {
+        try {
+          history = await apiJson(`/scores/historical/${id}`, session);
+        } catch (e) {
+          console.log(`Historical failed for ${id}, trying snapshot fallback...`);
+          history = await apiJson(`/scores/snapshot/${id}`, session);
+        }
+      }
       const headers = { "content-type": "application/json", Authorization: `Bearer ${secret}` };
       if (process.env.TXLINE_SITES_BYPASS_TOKEN) headers["OAI-Sites-Authorization"] = `Bearer ${process.env.TXLINE_SITES_BYPASS_TOKEN}`;
       const response = await fetch(`${endpoint}/api/data/ingest/txline`, {
@@ -351,7 +361,7 @@ async function syncHistorical(session, fixtureId, endpointArgument, metadataOnly
     }
     }
   };
-  await Promise.all(Array.from({ length: Math.min(4, selected.length) }, () => importOne()));
+  await Promise.all(Array.from({ length: 1 }, () => importOne()));
   console.log(`${metadataOnly ? "Fixture index" : "Historical sync"} finished: ${imported} imported, ${failures.length} unavailable.`);
   if (failures.length) console.log(`Unavailable fixtures: ${failures.map((failure) => failure.fixtureId).join(", ")}`);
   if (!imported) process.exitCode = 1;

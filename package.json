@@ -9,7 +9,7 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/journey-layer.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "txline:activate": "node scripts/txline-devnet.mjs activate",
@@ -17,7 +17,14 @@
     "txline:historical": "node scripts/txline-devnet.mjs historical",
     "txline:sync": "node scripts/txline-devnet.mjs sync",
     "txline:index": "node scripts/txline-devnet.mjs index",
-    "txline:secret": "node scripts/txline-devnet.mjs secret"
+    "txline:secret": "node scripts/txline-devnet.mjs secret",
+    "txline:mainnet:activate": "node scripts/txline-mainnet.mjs activate",
+    "txline:mainnet:check": "node scripts/txline-mainnet.mjs check",
+    "txline:mainnet:historical": "node scripts/txline-mainnet.mjs historical",
+    "txline:mainnet:sync": "node scripts/txline-mainnet.mjs sync",
+    "txline:mainnet:index": "node scripts/txline-mainnet.mjs index",
+    "txline:mainnet:secret": "node scripts/txline-mainnet.mjs secret",
+    "txline:headshots": "node scripts/download-headshots.mjs"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",

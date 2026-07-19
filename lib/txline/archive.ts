@@ -3,7 +3,9 @@ import {
   PLAYER_SCORE_FORMULA_VERSION,
   PlayerStatTotals,
   ScorePosition,
+  TeamMatchContext,
   calculatePlayerPerformanceScore,
+  computeContextualRating,
   performanceScoreToRating,
 } from "../scoring";
 
@@ -13,7 +15,7 @@ export type DataCoverage = "complete" | "partial" | "unavailable";
 export type ArchivedPlayer = LivePlayer & PlayerStatTotals & {
   teamId: string;
   performanceScore: number;
-  impactRating: number;
+  impactRating: number | null;
   dataCoverage: DataCoverage;
   formulaVersion: string;
 };
@@ -190,6 +192,7 @@ export function createTxlineArchive(fixture: LiveFixture, payload: unknown): Txl
   }
 
   const archivedEvents: ArchivedEvent[] = [];
+  const substitutedOnPlayers = new Set<string>();
   let syntheticSequence = 0;
   for (const value of payloadRows) {
     const row = record(value);
@@ -201,6 +204,14 @@ export function createTxlineArchive(fixture: LiveFixture, payload: unknown): Txl
     const sourceAssistId = playerIdFrom(data, ["AssistPlayerId", "AssistedByPlayerId"]);
     const playerId = aliases.get(sourcePlayerId) ?? sourcePlayerId;
     const assistId = aliases.get(sourceAssistId) ?? sourceAssistId;
+    if (action === "substitution") {
+      const inRaw = first(data, ["PlayerInId", "playerInId"]);
+      if (inRaw !== undefined && inRaw !== null) {
+        const inIdStr = stringValue(inRaw);
+        const resolvedInId = aliases.get(inIdStr) ?? inIdStr;
+        if (resolvedInId) substitutedOnPlayers.add(resolvedInId);
+      }
+    }
     if (!aggregatePlayerCount && playerId && statTotals.has(playerId)) {
       applyEventFallback(statTotals.get(playerId)!, action, data);
       attributedPlayerIds.add(`${numeric(first(row, ["Participant"]))}:${playerId}`);
@@ -228,16 +239,57 @@ export function createTxlineArchive(fixture: LiveFixture, payload: unknown): Txl
   const coverage: DataCoverage = aggregatePlayerCount >= match.players.length && match.players.length > 0
     ? "complete"
     : attributedPlayerIds.size > 0 ? "partial" : "unavailable";
+
+  // ── Team-level confirmed event counts ───────────────────────────────────
+  // Each real event comes in pairs: first empty {}, then with Outcome/PlayerId.
+  // We only count the confirmed half (those carrying a non-empty Outcome or
+  // GoalType field) to avoid double-counting.
+  const teamCtx: Record<1 | 2, TeamMatchContext> = {
+    1: { shots: 0, onTarget: 0, goalCount: match.participant1Score ?? 0, yellowCards: 0, redCards: 0 },
+    2: { shots: 0, onTarget: 0, goalCount: match.participant2Score ?? 0, yellowCards: 0, redCards: 0 },
+  };
+  for (const value of payloadRows) {
+    const row = record(value);
+    if (!row) continue;
+    const action = actionOf(row);
+    const p = numeric(first(row, ["Participant"])) as 1 | 2;
+    if (p !== 1 && p !== 2) continue;
+    const data = eventData(row);
+    if (action === "shot") {
+      const outcome = stringValue(first(data, ["Outcome"])).toLowerCase();
+      if (outcome) {
+        teamCtx[p].shots += 1;
+        if (outcome === "ontarget") teamCtx[p].onTarget += 1;
+      }
+    } else if (action === "yellow_card") {
+      if (data && Object.keys(data).length > 0) teamCtx[p].yellowCards += 1;
+    } else if (action === "red_card" || action === "second_yellow_card") {
+      if (data && Object.keys(data).length > 0) teamCtx[p].redCards += 1;
+    }
+  }
+
   const players: ArchivedPlayer[] = match.players.map((player) => {
     const stats = statTotals.get(player.id) ?? emptyStats();
-    const performanceScore = isPosition(player.position) ? calculatePlayerPerformanceScore(player.position, stats) : 0;
     const teamId = player.participant === 1 ? fixture.participant1Id : fixture.participant2Id;
+    const p = player.participant as 1 | 2;
+    const opp = p === 1 ? 2 : 1;
+    const performanceScore = isPosition(player.position) ? calculatePlayerPerformanceScore(player.position, stats) : 0;
+    // Use contextual rating when we have match data (lineup available).
+    // Fall back to performanceScoreToRating only when coverage is "unavailable"
+    // AND we have no team-level event data at all.
+    const hasTeamData = teamCtx[1].shots + teamCtx[2].shots + teamCtx[1].goalCount + teamCtx[2].goalCount > 0;
+    const played = player.starter || substitutedOnPlayers.has(player.id) || (stats.minutes > 0);
+    const impactRating = played
+      ? (hasTeamData
+        ? computeContextualRating(player.id, fixture.id, player.position, player.starter, stats, teamCtx[p], teamCtx[opp])
+        : performanceScoreToRating(performanceScore))
+      : null;
     return {
       ...player,
       ...stats,
       teamId,
       performanceScore,
-      impactRating: performanceScoreToRating(performanceScore),
+      impactRating,
       dataCoverage: coverage,
       formulaVersion: PLAYER_SCORE_FORMULA_VERSION,
     };

@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { ensureArchiveDatabase, getDb } from "@/db";
 import {
   feedEvents, fixtureSyncState, fixtures, lineups, playerMatchStats, players, teams,
+  rawScoreEvents, playerExternalIds,
 } from "@/db/schema";
 import { createTxlineArchive } from "@/lib/txline/archive";
 import { normalizeFixtures } from "@/lib/txline/normalize";
@@ -50,10 +51,12 @@ async function ingest(request: Request) {
     { id: fixture.participant2Id, name: fixture.participant2 },
   ];
   for (const team of participantTeams) {
-    await db.insert(teams).values({ ...team, code: code(team.name, team.id) }).onConflictDoUpdate({
-      target: teams.id,
-      set: { name: team.name, code: code(team.name, team.id) },
-    });
+    if (team.name) {
+      await db.insert(teams).values({ ...team, code: code(team.name, team.id) }).onConflictDoUpdate({
+        target: teams.id,
+        set: { name: team.name, code: code(team.name, team.id) },
+      });
+    }
   }
 
   const homeScore = fixture.homeTeamId === fixture.participant1Id ? fixture.participant1Score : fixture.participant2Score;
@@ -113,19 +116,20 @@ async function ingest(request: Request) {
     await db.insert(players).values({
       id: player.id, teamId: player.teamId, name: player.name,
       position: player.position, shirtNumber: player.number,
+      sofascoreId: player.sofascoreId ?? null,
     }).onConflictDoUpdate({
       target: players.id,
-      set: { teamId: player.teamId, name: player.name, position: player.position, shirtNumber: player.number },
+      set: { teamId: player.teamId, name: player.name, position: player.position, shirtNumber: player.number, sofascoreId: player.sofascoreId ?? null },
     });
   }
   for (const batch of chunks(uniquePlayers, 12)) {
-    await db.insert(lineups).values(batch.map((player) => ({
+    await Promise.all(batch.map(player => db.insert(lineups).values({
       fixtureId: fixture.id, playerId: player.id, teamId: player.teamId,
       starter: player.starter, officialSubstitute: !player.starter, position: player.position,
     })));
   }
   for (const batch of chunks(uniquePlayers, 4)) {
-    await db.insert(playerMatchStats).values(batch.map((player) => ({
+    await Promise.all(batch.map((player) => db.insert(playerMatchStats).values({
       fixtureId: fixture.id,
       playerId: player.id,
       minutes: player.minutes,
@@ -151,7 +155,54 @@ async function ingest(request: Request) {
 
   const uniqueEvents = [...new Map(archive.events.map((event) => [event.sequence, event])).values()];
   for (const batch of chunks(uniqueEvents, 10)) {
-    await db.insert(feedEvents).values(batch.map((event) => ({ ...event, receivedAt: now })));
+    await Promise.all(batch.map(event => db.insert(feedEvents).values({ ...event, receivedAt: now })));
+  }
+
+  // ── Archive Raw Score Events ──
+  await db.delete(rawScoreEvents).where(eq(rawScoreEvents.fixtureId, fixture.id));
+  
+  const rawEventsToInsert = (Array.isArray(body.history) ? body.history : []).map((rowVal: any) => {
+    const row = record(rowVal);
+    if (!row) return null;
+    const action = stringValue(first(row, ["Action", "Type"])).toLowerCase() || "unknown";
+    const data = record(first(row, ["DataSoccer", "Data"])) ?? row;
+    const seq = numeric(first(row, ["Seq", "Sequence"])) || 0;
+    const confirmed = stringValue(first(row, ["Status", "StatusId"])) === "confirmed" || numeric(first(row, ["StatusId"])) === 100;
+    
+    return {
+      fixtureId: fixture.id,
+      sequence: seq,
+      eventId: stringValue(first(row, ["EventId", "Id"])),
+      eventTimestamp: stringValue(first(row, ["Timestamp", "Epoch"])),
+      action,
+      confirmed,
+      participantId: stringValue(first(row, ["Participant"])),
+      playerId: stringValue(first(data, ["PlayerId", "PlayerInId", "PlayerOutId"])),
+      playerInId: stringValue(first(data, ["PlayerInId"])),
+      playerOutId: stringValue(first(data, ["PlayerOutId"])),
+      matchMinute: numeric(first(data, ["Minutes", "Minute"])),
+      supersededBySequence: numeric(first(row, ["SupersededBySequence"])),
+      rawPayload: JSON.stringify(rowVal),
+      ingestedAt: now,
+    };
+  }).filter((x): x is Exclude<typeof x, null> => x !== null);
+
+  for (const batch of chunks(rawEventsToInsert, 25)) {
+    await Promise.all(batch.map(item => db.insert(rawScoreEvents).values(item)));
+  }
+
+  // Set up player external mappings
+  for (const player of uniquePlayers) {
+    await db.insert(playerExternalIds).values({
+      source: "txline",
+      externalId: player.id,
+      playerId: player.id,
+      firstSeenFixtureId: fixture.id,
+      lastSeenFixtureId: fixture.id,
+    }).onConflictDoUpdate({
+      target: [playerExternalIds.source, playerExternalIds.externalId],
+      set: { lastSeenFixtureId: fixture.id },
+    });
   }
 
   await db.insert(fixtureSyncState).values({
@@ -181,6 +232,15 @@ async function ingest(request: Request) {
     },
   });
 
+  // Trigger incremental player repository stats recalculation
+  const competitionId = fixture.competitionId || "worldcup2026";
+  try {
+    const { updateIncrementalStats } = await import("@/lib/player-repository/repository");
+    await updateIncrementalStats(fixture.id, competitionId, fixture.finalised);
+  } catch (error) {
+    console.error("[Incremental Update] Failed to update player repository stats:", error);
+  }
+
   return Response.json({
     fixtureId: fixture.id,
     players: uniquePlayers.length,
@@ -192,6 +252,25 @@ async function ingest(request: Request) {
   });
 }
 
+function record(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function first(source: Record<string, unknown> | null, keys: string[]) {
+  if (!source) return undefined;
+  for (const key of keys) if (source[key] !== undefined && source[key] !== null) return source[key];
+  return undefined;
+}
+
+function stringValue(value: unknown) {
+  return value === undefined || value === null ? "" : String(value);
+}
+
+function numeric(value: unknown) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export async function POST(request: Request) {
   try {
     return await ingest(request);
@@ -200,6 +279,8 @@ export async function POST(request: Request) {
     const cause = base.cause instanceof Error ? base.cause.message : base.cause ? String(base.cause) : "";
     const message = cause ? `${base.message} | Cause: ${cause}` : base.message;
     console.error("TxLINE ingestion failed", error);
+    try { require("fs").appendFileSync("scratch/ingest-error.txt", message + "\n"); } catch (e) {}
     return Response.json({ error: message }, { status: 500 });
   }
 }
+
