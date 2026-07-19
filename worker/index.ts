@@ -1,6 +1,7 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import { ensureArchiveDatabase } from "@/db";
 
 interface Env {
   ASSETS: Fetcher;
@@ -40,8 +41,18 @@ const worker = {
       }, allowedWidths);
     }
 
+    // Ensure D1 tables exist before any route handler runs.
+    // This prevents "no such table" errors when the home page or any
+    // route hits the database before an API route has initialized it.
+    try {
+      await ensureArchiveDatabase();
+    } catch (e) {
+      console.error("[Worker] ensureArchiveDatabase failed (non-fatal for static routes):", e);
+    }
+
     return handler.fetch(request, env, ctx);
   },
 };
 
 export default worker;
+

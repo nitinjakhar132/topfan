@@ -11,10 +11,17 @@ const { d1, r2 } = hostingConfig;
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
+// Only include D1/R2 placeholder bindings for local dev (serve mode).
+// For production builds, these bindings come from the Cloudflare Pages
+// dashboard settings. Including the placeholder database_id in the built
+// wrangler.json causes Cloudflare to override dashboard bindings with a
+// non-existent database, resulting in "no D1 Database connection found".
+const isProductionBuild = process.argv.includes("build");
+
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
-  d1_databases: d1
+  d1_databases: (!isProductionBuild && d1)
     ? [
         {
           binding: d1,
