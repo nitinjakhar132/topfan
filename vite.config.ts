@@ -1,4 +1,6 @@
+// Dummy comment to trigger fresh Cloudflare Pages build after updating the build output directory setting to dist
 import vinext from "vinext";
+
 import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { sites } from "./build/sites-vite-plugin";
