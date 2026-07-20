@@ -47,16 +47,10 @@ export function sites(): Plugin {
         resolve(root, "dist", "_worker.js"),
         'import worker from "./server/index.js";\nexport default worker;\n'
       );
-
-      // Overwrite the generated wrangler.json inside dist/server/ with an empty JSON object.
-      // We cannot delete it entirely because wrangler's deploy config redirection cache
-      // expects the file to exist, but writing an empty object strips the unsupported Worker fields
-      // ('main', 'rules', 'assets') so that Pages validation succeeds.
-      const serverWranglerJson = resolve(root, "dist", "server", "wrangler.json");
-      await writeFile(serverWranglerJson, "{}");
     },
   };
 }
+
 
 
 
