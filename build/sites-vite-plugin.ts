@@ -48,12 +48,15 @@ export function sites(): Plugin {
         'import worker from "./server/index.js";\nexport default worker;\n'
       );
 
-      // Delete the generated wrangler.json inside dist/server/ to prevent Cloudflare Pages
-      // build configuration validation errors (Pages does not support "main", "rules", or "assets" fields).
+      // Overwrite the generated wrangler.json inside dist/server/ with an empty JSON object.
+      // We cannot delete it entirely because wrangler's deploy config redirection cache
+      // expects the file to exist, but writing an empty object strips the unsupported Worker fields
+      // ('main', 'rules', 'assets') so that Pages validation succeeds.
       const serverWranglerJson = resolve(root, "dist", "server", "wrangler.json");
-      await rm(serverWranglerJson, { force: true });
+      await writeFile(serverWranglerJson, "{}");
     },
   };
 }
+
 
 
