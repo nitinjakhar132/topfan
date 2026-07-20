@@ -13,8 +13,29 @@ export function getDb() {
 }
 
 let initialization: Promise<void> | null = null;
+let initialized = false;
+
+// Helper to wrap a promise in a timeout
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`[DB DEBUG] ${label} timed out after ${ms}ms`));
+    }, ms);
+    promise.then(
+      (res) => {
+        clearTimeout(timer);
+        resolve(res);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
 
 export async function ensureArchiveDatabase() {
+  if (initialized) return;
   if (initialization) return initialization;
   initialization = (async () => {
     console.log("[DB DEBUG] ensureArchiveDatabase: starting initialization...");
@@ -25,8 +46,10 @@ export async function ensureArchiveDatabase() {
     }
     console.log("[DB DEBUG] Running D1 batch table creation...");
 
+    const DB_TIMEOUT_MS = 1500;
+
     // ── Batch 1: Original core tables ──────────────────────────────────────
-    await d1.batch([
+    await withTimeout(d1.batch([
       d1.prepare("CREATE TABLE IF NOT EXISTS teams (id text PRIMARY KEY NOT NULL, name text NOT NULL, code text NOT NULL, flag text DEFAULT '' NOT NULL, eliminated_at text)"),
       d1.prepare("CREATE UNIQUE INDEX IF NOT EXISTS teams_code_unique ON teams (code)"),
       d1.prepare("CREATE TABLE IF NOT EXISTS fixtures (id text PRIMARY KEY NOT NULL, competition_id text, competition_name text, participant_1_id text, participant_2_id text, home_team_id text NOT NULL, away_team_id text NOT NULL, starts_at text NOT NULL, phase text DEFAULT 'scheduled' NOT NULL, home_score integer, away_score integer, finalised_at text, data_coverage text DEFAULT 'unavailable' NOT NULL, formula_version text, raw_updated_at text DEFAULT CURRENT_TIMESTAMP NOT NULL)"),
@@ -40,10 +63,10 @@ export async function ensureArchiveDatabase() {
       d1.prepare("CREATE UNIQUE INDEX IF NOT EXISTS picks_fixture_wallet_unique ON picks (fixture_id, wallet)"),
       d1.prepare("CREATE TABLE IF NOT EXISTS match_scores (fixture_id text NOT NULL, wallet text NOT NULL, team_id text NOT NULL, selected_trio real NOT NULL, best_own_trio real NOT NULL, best_opposition_trio real NOT NULL, selection_accuracy real NOT NULL, matchup_index real NOT NULL, rank integer NOT NULL, entrants integer NOT NULL, percentile real NOT NULL, base_score real NOT NULL, placement_bonus real NOT NULL, contribution real NOT NULL, finalised_at text DEFAULT CURRENT_TIMESTAMP NOT NULL, PRIMARY KEY (fixture_id, wallet))"),
       d1.prepare("CREATE INDEX IF NOT EXISTS match_scores_team_idx ON match_scores (team_id, contribution)"),
-    ]);
+    ]), DB_TIMEOUT_MS, "Batch 1 tables creation");
 
     // ── Batch 2: Player Repository tables ──────────────────────────────────
-    await d1.batch([
+    await withTimeout(d1.batch([
       // 4.1 Player External IDs
       d1.prepare("CREATE TABLE IF NOT EXISTS player_external_ids (source text NOT NULL, external_id text NOT NULL, player_id text NOT NULL, first_seen_fixture_id text, last_seen_fixture_id text)"),
       d1.prepare("CREATE UNIQUE INDEX IF NOT EXISTS player_ext_ids_unique ON player_external_ids (source, external_id)"),
@@ -59,10 +82,10 @@ export async function ensureArchiveDatabase() {
 
       // 4.6 Rating Model Versions
       d1.prepare("CREATE TABLE IF NOT EXISTS rating_model_versions (version text PRIMARY KEY NOT NULL, name text NOT NULL, weights_json text NOT NULL, required_metrics_json text NOT NULL, created_at text DEFAULT CURRENT_TIMESTAMP NOT NULL, active integer DEFAULT 0 NOT NULL, notes text)"),
-    ]);
+    ]), DB_TIMEOUT_MS, "Batch 2 player repo tables");
 
     // ── Batch 3: Tournament aggregates, traits, user journey ───────────────
-    await d1.batch([
+    await withTimeout(d1.batch([
       // 4.7 Tournament Aggregates
       d1.prepare(`CREATE TABLE IF NOT EXISTS player_tournament_stats (
         player_id text NOT NULL, competition_id text NOT NULL, team_id text NOT NULL, position text NOT NULL,
@@ -95,10 +118,10 @@ export async function ensureArchiveDatabase() {
 
       // 4.9 User–Player Journey
       d1.prepare("CREATE TABLE IF NOT EXISTS user_player_history (wallet text NOT NULL, player_id text NOT NULL, competition_id text NOT NULL, times_selected integer DEFAULT 0 NOT NULL, completed_selections integer DEFAULT 0 NOT NULL, total_rating_when_selected real DEFAULT 0 NOT NULL, average_rating_when_selected real, position_comparisons_won integer DEFAULT 0 NOT NULL, supporter_points_generated real DEFAULT 0 NOT NULL, best_fixture_id text, last_selected_fixture_id text, updated_at text DEFAULT CURRENT_TIMESTAMP NOT NULL, PRIMARY KEY (wallet, player_id, competition_id))"),
-    ]);
+    ]), DB_TIMEOUT_MS, "Batch 3 tournament stats");
 
     // ── Batch 4: Supporter Journey tables ─────────────────────────────────
-    await d1.batch([
+    await withTimeout(d1.batch([
       // 4.11 Supporter Team Journeys
       d1.prepare(`CREATE TABLE IF NOT EXISTS supporter_team_journeys (
         id text PRIMARY KEY NOT NULL, wallet text NOT NULL, competition_id text NOT NULL, team_id text NOT NULL,
@@ -134,10 +157,10 @@ export async function ensureArchiveDatabase() {
         metadata_json text DEFAULT '{}' NOT NULL
       )`),
       d1.prepare("CREATE INDEX IF NOT EXISTS sje_wallet_team_idx ON supporter_journey_events (wallet, team_id)"),
-    ]);
+    ]), DB_TIMEOUT_MS, "Batch 4 supporter journeys");
 
     // ── Batch 5: Milestones and Reward Claims ─────────────────────────────
-    await d1.batch([
+    await withTimeout(d1.batch([
       d1.prepare(`CREATE TABLE IF NOT EXISTS supporter_milestones (
         id integer PRIMARY KEY AUTOINCREMENT,
         wallet text NOT NULL,
@@ -162,7 +185,7 @@ export async function ensureArchiveDatabase() {
         fulfilled_at text,
         metadata_json text DEFAULT '{}' NOT NULL
       )`),
-    ]);
+    ]), DB_TIMEOUT_MS, "Batch 5 milestones");
 
     console.log("[DB DEBUG] D1 batch table creation completed. Verifying table columns...");
 
@@ -226,7 +249,11 @@ export async function ensureArchiveDatabase() {
     };
     for (const [table, columns] of Object.entries(requiredColumns)) {
       console.log(`[DB DEBUG] Checking table columns for: ${table}`);
-      const result = await d1.prepare(`PRAGMA table_info(${table})`).all<{ name: string }>();
+      const result = await withTimeout(
+        d1.prepare(`PRAGMA table_info(${table})`).all<{ name: string }>(),
+        DB_TIMEOUT_MS,
+        `PRAGMA table_info(${table})`
+      );
       console.log(`[DB DEBUG] Columns in ${table}:`, JSON.stringify(result.results));
       const existing = new Set((result.results ?? []).map((column: { name: string }) => column.name));
       for (const [name, definition] of columns) {
@@ -241,6 +268,7 @@ export async function ensureArchiveDatabase() {
       }
     }
     console.log("[DB DEBUG] ensureArchiveDatabase initialization complete!");
+    initialized = true;
   })().catch((error) => {
     console.error("[DB DEBUG] ensureArchiveDatabase failed:", error);
     initialization = null;
@@ -248,3 +276,5 @@ export async function ensureArchiveDatabase() {
   });
   return initialization;
 }
+
+
