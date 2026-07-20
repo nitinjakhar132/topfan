@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "vinext dev",
-    "build": "vinext build && node -e \"const fs=require('fs'),path=require('path');function cp(src,dst){if(!fs.existsSync(dst))fs.mkdirSync(dst,{recursive:true});for(const f of fs.readdirSync(src)){const s=path.join(src,f),d=path.join(dst,f);fs.statSync(s).isDirectory()?cp(s,d):fs.copyFileSync(s,d)}}cp('dist/client','dist');try{fs.unlinkSync('.wrangler/deploy/config.json')}catch(e){}\"",
+    "build": "vinext build && node scripts/postbuild.mjs",
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs tests/journey-layer.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
