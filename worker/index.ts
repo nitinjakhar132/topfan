@@ -26,6 +26,20 @@ interface ExecutionContext {
 // dangerouslyAllowSVG: true in next.config.js and uncomment below:
 // const imageConfig: ImageConfig = { dangerouslyAllowSVG: true };
 
+// Paths that are purely static assets — skip DB init to avoid blocking
+// concurrent asset requests which caused the "Worker hung" CPU timeout.
+function isStaticAssetPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/static/") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/favicon.svg" ||
+    pathname === "/og.png" ||
+    pathname === "/robots.txt" ||
+    pathname === "/manifest.json"
+  );
+}
+
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -41,13 +55,24 @@ const worker = {
       }, allowedWidths);
     }
 
-    // Ensure D1 tables exist before any route handler runs.
-    // This prevents "no such table" errors when the home page or any
-    // route hits the database before an API route has initialized it.
-    try {
-      await ensureArchiveDatabase();
-    } catch (e) {
-      console.error("[Worker] ensureArchiveDatabase failed (non-fatal for static routes):", e);
+    // For static asset requests, skip DB init entirely — they don't need it
+    // and blocking them caused "Worker hung" CPU timeout errors because many
+    // concurrent asset requests all waited on the same long-running init promise.
+    if (!isStaticAssetPath(url.pathname)) {
+      if (url.pathname.startsWith("/api/")) {
+        // API routes: await DB init so the route handler always sees the tables
+        try {
+          await ensureArchiveDatabase();
+        } catch (e) {
+          console.error("[Worker] ensureArchiveDatabase failed:", e);
+        }
+      } else {
+        // Page routes: fire-and-forget DB init in background so the page renders
+        // immediately (it only queries DB client-side via fetch after hydration).
+        ctx.waitUntil(ensureArchiveDatabase().catch((e) =>
+          console.error("[Worker] ensureArchiveDatabase background init failed:", e)
+        ));
+      }
     }
 
     return handler.fetch(request, env, ctx);
@@ -55,4 +80,3 @@ const worker = {
 };
 
 export default worker;
-
