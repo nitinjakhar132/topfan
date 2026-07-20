@@ -1,0 +1,5 @@
+# Cloudflare Pages configuration file
+name = "topfan"
+compatibility_date = "2024-05-15"
+compatibility_flags = [ "nodejs_compat" ]
+pages_build_output_dir = "dist"
