@@ -47,7 +47,13 @@ export function sites(): Plugin {
         resolve(root, "dist", "_worker.js"),
         'import worker from "./server/index.js";\nexport default worker;\n'
       );
+
+      // Delete the generated wrangler.json inside dist/server/ to prevent Cloudflare Pages
+      // build configuration validation errors (Pages does not support "main", "rules", or "assets" fields).
+      const serverWranglerJson = resolve(root, "dist", "server", "wrangler.json");
+      await rm(serverWranglerJson, { force: true });
     },
   };
 }
+
 
