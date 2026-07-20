@@ -863,19 +863,6 @@ export function LiveMatchScreen({
             <button className="manual-replay-btn" onClick={startManualReplay}>
               Replay Match ↺
             </button>
-            {state.finalState && (
-              <button
-                className="manual-replay-btn view-summary-btn"
-                style={{
-                  background: "rgba(16, 185, 129, 0.15)",
-                  border: "1px solid var(--green)",
-                  color: "var(--green)"
-                }}
-                onClick={() => setState((prev) => ({ ...prev, showFinalCard: true }))}
-              >
-                View Summary 🏆
-              </button>
-            )}
           </div>
         )}
       </div>
@@ -926,7 +913,7 @@ export function LiveMatchScreen({
               {homeEvents.map((evt) => (
                 <div key={evt.seq} className="event-item">
                   <span className="event-detail">
-                    {evt.playerName || "Goal"} {evt.minute}'
+                    {evt.playerName || (evt.action === "goal" ? "Goal" : evt.action === "red_card" ? "Red card" : "Yellow card")} {evt.minute}'
                   </span>
                   <span className="event-badge">
                     {evt.action === "goal" ? "⚽" : evt.action === "red_card" ? "🟥" : "🟨"}
@@ -942,7 +929,7 @@ export function LiveMatchScreen({
                     {evt.action === "goal" ? "⚽" : evt.action === "red_card" ? "🟥" : "🟨"}
                   </span>
                   <span className="event-detail">
-                    {evt.playerName || "Goal"} {evt.minute}'
+                    {evt.playerName || (evt.action === "goal" ? "Goal" : evt.action === "red_card" ? "Red card" : "Yellow card")} {evt.minute}'
                   </span>
                 </div>
               ))}

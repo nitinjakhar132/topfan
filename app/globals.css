@@ -11,7 +11,8 @@ button:focus-visible { outline:3px solid #6b9d35; outline-offset:2px; }
 .brand { border:0; background:transparent; display:flex; align-items:center; gap:9px; font-weight:900; font-size:13px; letter-spacing:.08em; padding:0; }
 .brand-mark { display:grid; place-items:center; width:29px; height:29px; border-radius:9px 9px 9px 2px; background:var(--green); color:var(--lime); font-size:11px; letter-spacing:-.04em; }
 .wallet { border:1px solid #d7d7cf; background:#fff; border-radius:999px; padding:7px 11px; font-size:11px; font-weight:750; display:flex; align-items:center; gap:6px; }
-.wallet-dot { width:7px; height:7px; background:#67b84b; border-radius:50%; box-shadow:0 0 0 3px #e2f2dc; }
+.wallet-dot { width:7px; height:7px; background:#c5c7c0; border-radius:50%; box-shadow:0 0 0 3px #eeeee8; }
+.wallet.active .wallet-dot { background:#67b84b; box-shadow:0 0 0 3px #e2f2dc; }
 .wallet.connecting .wallet-dot{background:#e2ac47}.wallet.error .wallet-dot{background:#d75f52}.network-badge{font-size:7px;letter-spacing:.12em;font-weight:900;color:#405d4b;background:#e4ebdf;border-radius:999px;padding:5px 7px;margin-left:auto}
 .content { padding-bottom:92px; }
 .screen { padding:25px 20px 34px; }
@@ -1893,8 +1894,7 @@ h1 { font-size:37px; line-height:1.02; letter-spacing:-.05em; margin:14px 0 12px
   font-size: 9px;
   color: rgba(255, 255, 255, 0.25);
   text-align: center;
-  margin-top: auto;
-  padding-top: 24px;
+  padding: 16px 0 4px;
 }
 
 /* ══════════════════════════════════════════

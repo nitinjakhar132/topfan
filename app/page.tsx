@@ -11,7 +11,7 @@ import { LiveMatchScreen } from "./components/LiveMatchScreen";
 import { PlayersScreen } from "./components/players/PlayersScreen";
 
 type Position = "ATT" | "MID" | "DEF";
-type Screen = "home" | "fixtures" | "select" | "match" | "history" | "support" | "team_journey" | "profile" | "players" | "live";
+type Screen = "home" | "fixtures" | "select" | "match" | "history" | "support" | "team_journey" | "players" | "live";
 type SelectionStep = "choose-team" | "choose-players" | "review" | "submitting" | "locked";
 type Participation = { fixtureId: string; teamId: string; playerIds: string[]; lockedAt: string };
 type TeamSummary = { id: string; name: string; matches: LiveFixture[]; supported: number };
@@ -1181,7 +1181,7 @@ export default function Home() {
           <div className="rail-heading matches-heading"><div><h2>Matches</h2><span>Previous matches left · upcoming matches right</span></div><button className="see-all" onClick={() => setScreen("fixtures")}>See all</button></div>
           {fixturesLoading ? <div className="real-empty"><b>Loading TxLINE fixtures…</b></div> : fixtures.length ? <><div className="horizontal-rail match-rail" ref={matchRailRef} onScroll={updateMatchRailIndex}>{matchNavigation.ordered.map((fixture) => <MatchCard key={fixture.id} fixture={fixture} label={matchLabel(fixture)} preferredTeamId={preferredTeamForFixture(fixture)} odds={oddsByFixture[fixture.id]} comparison={comparisonsByFixture[fixture.id]} apiConnected={connected} onClick={() => openFixture(fixture)} />)}</div><div className="match-rail-progress" aria-live="polite"><button aria-label="Show previous match" onClick={() => navigateMatchRail(-1)} disabled={matchRailIndex === 0}>← Previous</button><span>{matchRailIndex + 1} / {matchNavigation.ordered.length}</span><button aria-label="Show next match" onClick={() => navigateMatchRail(1)} disabled={matchRailIndex >= matchNavigation.ordered.length - 1}>Next →</button></div></> : <div className="real-empty"><b>No fixtures returned</b><span>{message}</span></div>}
           <div className="rail-heading team-heading"><div><h2>Teams</h2><span>Derived from real fixtures</span></div></div>
-          {teams.length ? <div className="horizontal-rail team-rail">{teams.map((team) => <button className="team-career-card real-team-card" key={team.id} onClick={() => { setActiveTeamPage(team); setScreen("team_journey"); }}><TeamFlag name={team.name} className="real-team-badge" /><div className="team-card-title"><div><b>{team.name}</b><small>{team.matches.length} TxLINE fixtures</small></div></div><div className="team-card-score"><strong>{team.supported}</strong><span>matches you supported</span></div><div className="team-card-rank"><span>{team.supported ? "History ready" : "Not followed"}</span><b>›</b></div></button>)}</div> : null}
+          {teams.length ? <div className="horizontal-rail team-rail" style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>{teams.map((team) => <button className="team-career-card real-team-card" key={team.id} onClick={() => { setActiveTeamPage(team); setScreen("team_journey"); }}><TeamFlag name={team.name} className="real-team-badge" /><div className="team-card-title"><div><b>{team.name}</b><small>{team.matches.length} TxLINE fixtures</small></div></div><div className="team-card-score"><strong>{wallet ? team.supported : "—"}</strong><span>matches you supported</span></div><div className="team-card-rank"><span>{wallet && team.supported ? "History ready" : wallet ? "Not followed" : "Connect wallet"}</span><b>›</b></div></button>)}</div> : null}
         </>}
       </div>}
 
@@ -2630,7 +2630,7 @@ export default function Home() {
         />
       )}
 
-      {screen === "profile" && <div className="screen enter profile-screen" style={{ paddingBottom: "100px" }}><div className="avatar">1N</div><span className="eyebrow">DEVNET PROFILE</span><h1>{wallet ? shortWallet(wallet) : "No wallet"}</h1><p>{connected ? "TxLINE API token active in this browser." : "Connect to create a real supporter profile."}</p><div className="history-overview"><div><b>{participations.length || 1}</b><span>Real entries</span></div><div><b>{teams.filter((team) => team.supported).length || 1}</b><span>Teams backed</span></div><div><b>{fixtures.length}</b><span>Fixtures loaded</span></div></div></div>}
+
     </div>
 
     {/* Web Player Passport Modal overlay */}
@@ -2646,7 +2646,6 @@ export default function Home() {
       <button className={screen === "home" || screen === "fixtures" || screen === "match" ? "active" : ""} onClick={() => setScreen("home")}><span>▣</span>Matches</button>
       <button className={screen === "support" || screen === "team_journey" ? "active" : ""} onClick={() => setScreen("support")}><span>♥</span>Support</button>
       <button className={screen === "players" ? "active" : ""} onClick={() => setScreen("players")}><span>≡</span>Players</button>
-      <button className={screen === "profile" ? "active" : ""} onClick={() => setScreen("profile")}><span>●</span>Profile</button>
     </nav>}
   </section></main>;
 }
